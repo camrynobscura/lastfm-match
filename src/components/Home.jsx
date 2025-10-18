@@ -1,9 +1,47 @@
-import { useState, useContext } from 'react'
+import { useState } from 'react'
 
 const Home = () => {
+  // data from form input
   let [usernameOne, setUsernameOne] = useState('')
   let [usernameTwo, setUsernameTwo] = useState('')
 
+  // data from api
+  let [usernameOneData, setusernameOneData] = useState()
+  let [usernameTwoData, setusernameTwoData] = useState()
+
+  // component status data
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+
+    // check if fields are empty
+    if (!usernameOne.trim()) return
+    if (!usernameTwo.trim()) return
+
+    if (isLoading) return
+    setIsLoading(true)
+    try {
+
+      // make api request with two usernames
+      let usernameOneResults = await searchUsername(usernameOne)
+      let usernameTwoResults = await searchUsername(usernameTwo)
+
+      // save the results
+      setusernameOneData(usernameOneResults)
+      setusernameTwoData(usernameTwoResults)
+
+      // compare the two data objects
+
+      setError(null)
+    } catch (err) {
+      console.log(err)
+      setError('request failed')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div>
@@ -16,7 +54,7 @@ const Home = () => {
         </p>
       </div>
       <div>
-        <form>
+        <form onSubmit={handleSubmit}>
           <input
             type='text'
             placeholder='Username 1'
@@ -24,7 +62,7 @@ const Home = () => {
             value={usernameOne}
             onChange={(e) => setUsernameOne(e.target.value)}
           />
-           <input
+          <input
             type='text'
             placeholder='Username 2'
             className='search-input'
