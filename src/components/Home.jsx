@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { searchUsername } from '../services/api'
+import MatchResults from './MatchResults'
 
 const Home = () => {
   // data from form input
   let [usernameOne, setUsernameOne] = useState('')
   let [usernameTwo, setUsernameTwo] = useState('')
-  let [timePeriod, setTimePeriod] = useState('1month')
+  let [timePeriod, setTimePeriod] = useState('1week')
+  let [matchingArtists, setMatchingArtists] = useState([])
 
   // data from api
   let [usernameOneData, setusernameOneData] = useState()
@@ -13,23 +15,19 @@ const Home = () => {
 
   // component status data
   const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('hello')
-    // console.log(timePeriod)
 
     // check if fields are empty
-    // if (!usernameOne.trim()) return
-    // if (!usernameTwo.trim()) return
+    if (!usernameOne.trim()) return
+    if (!usernameTwo.trim()) return
 
+    setIsLoading(true)
 
-
-    // if (isLoading) return
-    // setIsLoading(true)
     try {
-      console.log('hello')
       // make api request with two usernames
       let usernameOneResults = await searchUsername(usernameOne, timePeriod)
       let usernameTwoResults = await searchUsername(usernameTwo, timePeriod)
@@ -38,8 +36,7 @@ const Home = () => {
       setusernameOneData(usernameOneResults)
       setusernameTwoData(usernameTwoResults)
 
-      // compare the two data objects
-      compareUsers(usernameOneData, usernameTwoData)
+      // let comparisonData = await compareUsers()
 
       setError(null)
     } catch (err) {
@@ -47,13 +44,32 @@ const Home = () => {
       setError('request failed')
     } finally {
       setIsLoading(false)
+      setHasSubmitted(true)
     }
+
+    // compare the two data objects
+    // compareUsers()
   }
 
-  function compareUsers(userOne, userTwo) {
-    console.log(userOne)
-    console.log(userTwo)
-  }
+  useEffect(() => {
+    if (usernameOneData && usernameTwoData) {
+      console.log('data is loaded')
+
+
+      let userOneArtists = usernameOneData.topartists.artist.map(
+        (artist) => artist.name
+      )
+      let userTwoArtists = usernameTwoData.topartists.artist.map(
+        (artist) => artist.name
+      )
+
+      let filteredArrays = userOneArtists.filter((artist) => userTwoArtists.includes(artist));
+
+      console.log(filteredArrays)
+      setMatchingArtists(filteredArrays)
+
+    }
+  }, [usernameOneData, usernameTwoData])
 
   return (
     <div>
@@ -81,8 +97,13 @@ const Home = () => {
             value={usernameTwo}
             onChange={(e) => setUsernameTwo(e.target.value)}
           />
-          <select name='' id='' onChange={(e) => setTimePeriod(e.target.value)}>
-            <option defaultValue value='7day'>1 Week</option>
+          <select
+            defaultValue='1month'
+            name=''
+            id=''
+            onChange={(e) => setTimePeriod(e.target.value)}
+          >
+            <option value='7day'>1 Week</option>
             <option value='1month'>1 Month</option>
             <option value='3month'>3 Months</option>
             <option value='6month'>6 Months</option>
@@ -91,6 +112,9 @@ const Home = () => {
           </select>
           <button type='submit'>Match</button>
         </form>
+      </div>
+      <div>
+        <MatchResults matchingArtists={matchingArtists} isLoading={isLoading} hasSubmitted={hasSubmitted} />
       </div>
     </div>
   )
