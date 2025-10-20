@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  --main-color: rgba(11, 37, 188, 0.87);
+
+  color-scheme: light dark;
+  color: var(--main-color);
+  background-color: #dfdfb5ff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: inherit;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+* {
+  // border: 1px solid red;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  // font-size: 12px;
+}
+
+h1 {
+  font-size: 6rem;
+  line-height: 1.1;
+  margin: 0;
+  padding: 0;
+  font-family: Modak;
+}
+
+.app-description {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.head {
+  // border: 1px solid rgb(72, 169, 243);
+  padding-bottom: 12px;
+}
+
+.content {
+  // border: 1px solid rgba(119, 28, 247, 1);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.form {
+  // border: 1px solid rgb(93, 223, 93);
+  min-height: 200px;
+  background-color: var(--main-color);
+}
+
+.results {
+  // border: 1px solid rgb(243, 148, 148);
+}
