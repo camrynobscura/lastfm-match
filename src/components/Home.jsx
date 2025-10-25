@@ -4,8 +4,8 @@ import MatchDescription from './MatchDescription'
 
 const Home = () => {
   // data from form input
-  let [usernameOne, setUsernameOne] = useState('turtlepuff')
-  let [usernameTwo, setUsernameTwo] = useState('eliraguer')
+  let [usernameOne, setUsernameOne] = useState('')
+  let [usernameTwo, setUsernameTwo] = useState('')
   let [timePeriod, setTimePeriod] = useState('1week')
   let [matchingArtists, setMatchingArtists] = useState([])
 
@@ -83,8 +83,10 @@ const Home = () => {
       </div>
       <div className='content'>
         <div className='form'>
-          <form onSubmit={handleSubmit}>
+          <form className='form-content' onSubmit={handleSubmit}>
+
             <input
+              // name='username '
               type='text'
               placeholder='Username 1'
               className='search-input'
@@ -98,23 +100,26 @@ const Home = () => {
               value={usernameTwo}
               onChange={(e) => setUsernameTwo(e.target.value)}
             />
-            <select
-              defaultValue='1month'
-              name=''
-              id=''
-              onChange={(e) => setTimePeriod(e.target.value)}
-            >
-              <option value='7day'>1 Week</option>
-              <option value='1month'>1 Month</option>
-              <option value='3month'>3 Months</option>
-              <option value='6month'>6 Months</option>
-              <option value='12month'>1 Year</option>
-              <option value='overall'>All Time</option>
-            </select>
+            <div className='select'>
+              <select
+                defaultValue='1month'
+                name=''
+                id=''
+                onChange={(e) => setTimePeriod(e.target.value)}
+              >
+                <option value='7day'>1 Week</option>
+                <option value='1month'>1 Month</option>
+                <option value='3month'>3 Months</option>
+                <option value='6month'>6 Months</option>
+                <option value='12month'>1 Year</option>
+                <option value='overall'>All Time</option>
+              </select>
+              <span class="focus"></span>
+            </div>
             <button type='submit'>Match</button>
           </form>
         </div>
-        <div className='results'>
+        <div className='match-description'>
           <MatchDescription
             matchingArtists={matchingArtists}
             isLoading={isLoading}

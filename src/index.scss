@@ -1,20 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+@import './reset.css';
+
+$main-color: rgb(21, 47, 192);
+$main-accent-color: rgba(188, 234, 246, 1);
+$secondary-color: rgba(223, 223, 181);
+$secondary-color-opaque: rgba(223, 223, 181, 0.5);
+$button-color: rgba(203, 42, 235, 1);
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: monospace, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  --main-color: rgba(11, 37, 188, 0.87);
-
   color-scheme: light dark;
-  color: var(--main-color);
-  background-color: #dfdfb5ff;
+  color: $main-color;
+  background-color: $secondary-color;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 100%;
 }
 
 a {
@@ -31,6 +46,7 @@ body {
 
 #root {
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -57,29 +73,120 @@ h1 {
   font-family: Modak;
 }
 
-.app-description {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
 .head {
-  // border: 1px solid rgb(72, 169, 243);
-  padding-bottom: 12px;
+  padding-bottom: 36px;
+  .app-description {
+    max-width: 400px;
+    margin: 0 auto;
+  }
 }
 
 .content {
-  // border: 1px solid rgba(119, 28, 247, 1);
-  padding: 20px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  column-gap: 20px;
 }
 
 .form {
-  // border: 1px solid rgb(93, 223, 93);
   min-height: 200px;
-  background-color: var(--main-color);
+  background-color: $main-color;
 }
 
-.results {
-  // border: 1px solid rgb(243, 148, 148);
+.form-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 0;
+
+  select {
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    padding: 0 1em 0 0;
+    margin: 0;
+    width: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    line-height: inherit;
+    color: $secondary-color;
+  }
+
+  .select {
+    cursor: pointer;
+    display: grid;
+    grid-template-areas: 'select';
+    align-items: center;
+    position: relative;
+  }
+  .select::after {
+    content: '';
+    width: 0.8em;
+    height: 0.5em;
+    background-color: $secondary-color;
+    clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+    justify-self: end;
+  }
+
+  select,
+  .select:after {
+    grid-area: select;
+  }
+
+  select:focus + .focus {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border: 2px solid $main-color;
+    border-radius: inherit;
+  }
+
+  input,
+  .select {
+    border-radius: 0;
+    box-sizing: border-box;
+    width: 200px;
+    margin: 10px 0;
+    padding: 10px;
+    border: 2px solid $secondary-color;
+    background-color: $main-color;
+
+    // &::placeholder {
+    //   color: var(--secondary-color-opaque);
+    // }
+    // &::picker(select) {
+    //   appearance: base-select;
+    // }
+  }
+
+  button {
+    font-family: Modak;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 2.8em;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 200px;
+    margin: 10px 0;
+    padding: 10px 10px 4px 10px;
+    border: none;
+    color: rgba(255, 200, 255, 1);
+    border-radius: 8px;
+    // border: 2px solid var(--secondary-color);
+    background-color: $button-color;
+
+    &:hover {
+      background-color: scale-color($button-color, $lightness: -10%);
+    }
+  }
 }
+
+.match-description {
+  border: 3px solid $main-color;
+}
+
+// .match-description, .form {
+//   border-radius: 12px;
+// }
