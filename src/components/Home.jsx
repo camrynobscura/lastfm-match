@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react'
-import { searchUsername } from '../services/api'
+import { getTopArtists } from '../services/api'
 import MatchDescription from './MatchDescription'
+import MatchTable from './MatchTable'
 
 const Home = () => {
   // data from form input
   let [usernameOne, setUsernameOne] = useState('')
   let [usernameTwo, setUsernameTwo] = useState('')
-  let [timePeriod, setTimePeriod] = useState('1week')
+
+  let [staticUsernameOne, setStaticUsernameOne] = useState('')
+  let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
+
+  let [timePeriod, setTimePeriod] = useState('7day')
   let [matchingArtists, setMatchingArtists] = useState([])
 
   // data from api
@@ -20,7 +25,10 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
+    setStaticUsernameOne(usernameOne)
+    setStaticUsernameTwo(usernameTwo)
+    setError(null)
+    setHasSubmitted(false)
     // check if fields are empty
     if (!usernameOne.trim()) return
     if (!usernameTwo.trim()) return
@@ -29,8 +37,8 @@ const Home = () => {
 
     try {
       // make api request with two usernames
-      let usernameOneResults = await searchUsername(usernameOne, timePeriod)
-      let usernameTwoResults = await searchUsername(usernameTwo, timePeriod)
+      let usernameOneResults = await getTopArtists(usernameOne, timePeriod)
+      let usernameTwoResults = await getTopArtists(usernameTwo, timePeriod)
 
       // save the results
       setusernameOneData(usernameOneResults)
@@ -53,21 +61,34 @@ const Home = () => {
 
   useEffect(() => {
     if (usernameOneData && usernameTwoData) {
-      console.log('data is loaded')
+      console.log(usernameOneData)
+      console.log(usernameTwoData)
+      if (usernameOneData.message || usernameTwoData.message) {
+        if (usernameOneData.error) {
+          setError(usernameOneData.message)
+          console.log(usernameOneData.message)
+        }
+        if (usernameTwoData.error) {
+          setError(usernameTwoData.message)
+          console.log(usernameTwoData.message)
+        }
+      } else {
+        console.log('data is loaded')
 
-      let userOneArtists = usernameOneData.topartists.artist.map(
-        (artist) => artist.name
-      )
-      let userTwoArtists = usernameTwoData.topartists.artist.map(
-        (artist) => artist.name
-      )
+        let userOneArtists = usernameOneData.topartists.artist.map(
+          (artist) => artist.name
+        )
+        let userTwoArtists = usernameTwoData.topartists.artist.map(
+          (artist) => artist.name
+        )
 
-      let filteredArrays = userOneArtists.filter((artist) =>
-        userTwoArtists.includes(artist)
-      )
+        let filteredArrays = userOneArtists.filter((artist) =>
+          userTwoArtists.includes(artist)
+        )
 
-      console.log(filteredArrays)
-      setMatchingArtists(filteredArrays)
+        console.log(filteredArrays)
+        setMatchingArtists(filteredArrays)
+      }
     }
   }, [usernameOneData, usernameTwoData])
 
@@ -82,52 +103,59 @@ const Home = () => {
         </p>
       </div>
       <div className='content'>
-        <div className='form'>
-          <form className='form-content' onSubmit={handleSubmit}>
+        <div>
+          <div className='form'>
+            <form className='form-content' onSubmit={handleSubmit}>
+              <input
+                // name='username '
+                type='text'
+                placeholder='Username 1'
+                className='search-input'
+                value={usernameOne}
+                onChange={(e) => setUsernameOne(e.target.value)}
+              />
+              <input
+                type='text'
+                placeholder='Username 2'
+                className='search-input'
+                value={usernameTwo}
+                onChange={(e) => setUsernameTwo(e.target.value)}
+              />
+              <div className='select'>
+                <select
+                  defaultValue='1month'
+                  name=''
+                  id=''
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                >
+                  <option value='7day'>1 Week</option>
+                  <option value='1month'>1 Month</option>
+                  <option value='3month'>3 Months</option>
+                  <option value='6month'>6 Months</option>
+                  <option value='12month'>1 Year</option>
+                  <option value='overall'>All Time</option>
+                </select>
+                <span class='focus'></span>
+              </div>
+              <button type='submit'>Match</button>
+            </form>
+          </div>
+        </div>
+        <MatchDescription
+          matchingArtists={matchingArtists}
+          isLoading={isLoading}
+          hasSubmitted={hasSubmitted}
+          error={error}
+          staticUsernameOne={staticUsernameOne}
+          staticUsernameTwo={staticUsernameTwo}
 
-            <input
-              // name='username '
-              type='text'
-              placeholder='Username 1'
-              className='search-input'
-              value={usernameOne}
-              onChange={(e) => setUsernameOne(e.target.value)}
-            />
-            <input
-              type='text'
-              placeholder='Username 2'
-              className='search-input'
-              value={usernameTwo}
-              onChange={(e) => setUsernameTwo(e.target.value)}
-            />
-            <div className='select'>
-              <select
-                defaultValue='1month'
-                name=''
-                id=''
-                onChange={(e) => setTimePeriod(e.target.value)}
-              >
-                <option value='7day'>1 Week</option>
-                <option value='1month'>1 Month</option>
-                <option value='3month'>3 Months</option>
-                <option value='6month'>6 Months</option>
-                <option value='12month'>1 Year</option>
-                <option value='overall'>All Time</option>
-              </select>
-              <span class="focus"></span>
-            </div>
-            <button type='submit'>Match</button>
-          </form>
-        </div>
-        <div className='match-description'>
-          <MatchDescription
-            matchingArtists={matchingArtists}
-            isLoading={isLoading}
-            hasSubmitted={hasSubmitted}
-            usernameOne={usernameOne}
-            usernameTwo={usernameTwo}
-          />
-        </div>
+        />
+        <MatchTable
+          matchingArtists={matchingArtists}
+          isLoading={isLoading}
+          hasSubmitted={hasSubmitted}
+          error={error}
+        />
       </div>
     </div>
   )
