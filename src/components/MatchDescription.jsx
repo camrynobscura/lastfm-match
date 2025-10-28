@@ -1,5 +1,9 @@
+import CommonArtistsDescription from './CommonArtistsDescription'
+import CommonTracksDescription from './CommonTracksDescription'
+
 const MatchDescription = ({
   matchingArtists,
+  matchingTracks,
   isLoading,
   hasSubmitted,
   staticUsernameOne,
@@ -9,6 +13,7 @@ const MatchDescription = ({
   // console.log(matchingArtists)
 
   let truncatedMatchingArtists = matchingArtists.slice(0, 5)
+  let truncatedMatchingTracks = matchingTracks.slice(0, 3)
 
   return (
     <div className='match-description'>
@@ -35,30 +40,61 @@ const MatchDescription = ({
                     </div>
                   </div>
 
-                  {matchingArtists.length === 0 && hasSubmitted ? (
-                    <p>
-                      Unfortunately you have no artists in common. Try expanding
-                      the date range and see if that changes the results.{' '}
-                    </p>
-                  ) : (
-                    <>
-                      <p>
-                        You both love{' '}
-                        <span className='highlight-word'>artists</span> like{' '}
-                        {truncatedMatchingArtists.map((artist, i) => (
-                          <>
-                            {i === truncatedMatchingArtists.length - 1 ? (
-                              <>
-                                and <span className='bold'>{artist}.</span>
-                              </>
-                            ) : (
-                              <span className='bold'>{artist}, </span>
-                            )}
-                          </>
-                        ))}
-                      </p>
-                    </>
-                  )}
+                  <div>
+                    {/* if you have no tracks or artists in common */}
+                    {matchingArtists.length === 0 &&
+                      matchingTracks.length === 0 && (
+                          <p>
+                            Unfortunately you have no artists or tracks in
+                            common. Try expanding the date range and see if that
+                            changes the results.
+                          </p>
+                      )}
+
+                    {/* if you have no artists in common but do have tracks in common */}
+                    {matchingArtists.length === 0 &&
+                      matchingTracks.length !== 0 && (
+                        <>
+                          <div className='artists-description'>
+                            <p>Unfortunately you have no artists in
+                              common. Try expanding the date range and see if that
+                              changes the results.</p>
+                          </div>
+                          <CommonTracksDescription
+                            tracks={truncatedMatchingTracks}
+                          />
+                        </>
+                      )}
+
+                    {/* if you have artists in common but no tracks in common */}
+                    {matchingArtists.length !== 0 &&
+                      matchingTracks.length === 0 && (
+                        <>
+                        <CommonArtistsDescription
+                            artists={truncatedMatchingArtists}
+                          />
+                          <div  className='tracks-description'>
+                            <p>Unfortunately you have no tracks in
+                            common. Try expanding the date range and see if that
+                            changes the results.</p>
+                          </div>
+                        </>
+                      )}
+
+                    {/* if you have tracks and artists in common */}
+                    {matchingArtists.length !== 0 &&
+                      matchingTracks.length !== 0 && (
+                        <>
+                          <CommonArtistsDescription
+                            artists={truncatedMatchingArtists}
+                          />
+                          <CommonTracksDescription
+                            tracks={truncatedMatchingTracks}
+                          />
+                        </>
+                      )}
+                  </div>
+
                 </div>
               )}
             </>

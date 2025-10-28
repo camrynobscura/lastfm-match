@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Modak&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import './reset.css';
 
 $main-color: rgb(21, 47, 192);
@@ -15,7 +15,9 @@ $tertiary-color: rgb(15, 156, 235);
 }
 
 :root {
-  font-family: monospace, Avenir, Helvetica, Arial, sans-serif;
+  font-family:  "SUSE Mono", Avenir, Helvetica, Arial, sans-serif;
+  // font-kerning: 1.5;
+  // letter-spacing: 3.5;
   line-height: 1.5;
   font-weight: 400;
 
@@ -103,7 +105,7 @@ h1 {
 }
 
 .form {
-  min-height: 200px;
+  // min-height: 300px;
   background-color: $main-color;
 }
 
@@ -111,6 +113,8 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 500px;
   padding: 36px 0;
 
   select {
@@ -253,10 +257,13 @@ h1 {
 
     }
   }
+  .artists-description {
+    padding-bottom: 20px;
+  }
 }
 
 .bold {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .highlight-word {

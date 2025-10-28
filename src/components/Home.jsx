@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getTopArtists } from '../services/api'
+import { getTopArtists, getTopTracks } from '../services/api'
 import MatchDescription from './MatchDescription'
 import MatchTable from './MatchTable'
 
@@ -13,6 +13,7 @@ const Home = () => {
 
   let [timePeriod, setTimePeriod] = useState('7day')
   let [matchingArtists, setMatchingArtists] = useState([])
+  let [matchingTracks, setMatchingTracks] = useState([])
 
   // data from api
   let [usernameOneData, setusernameOneData] = useState()
@@ -37,12 +38,21 @@ const Home = () => {
 
     try {
       // make api request with two usernames
-      let usernameOneResults = await getTopArtists(usernameOne, timePeriod)
-      let usernameTwoResults = await getTopArtists(usernameTwo, timePeriod)
+      let usernameOneTopArtists = await getTopArtists(usernameOne, timePeriod)
+      let usernameTwoTopArtists = await getTopArtists(usernameTwo, timePeriod)
+
+      let usernameOneTopTracks = await getTopTracks(usernameOne, timePeriod)
+      let usernameTwoTopTracks = await getTopTracks(usernameTwo, timePeriod)
 
       // save the results
-      setusernameOneData(usernameOneResults)
-      setusernameTwoData(usernameTwoResults)
+      setusernameOneData({
+        artists: usernameOneTopArtists,
+        tracks: usernameOneTopTracks,
+      })
+      setusernameTwoData({
+        artists: usernameTwoTopArtists,
+        tracks: usernameTwoTopTracks,
+      })
 
       // let comparisonData = await compareUsers()
 
@@ -61,33 +71,70 @@ const Home = () => {
 
   useEffect(() => {
     if (usernameOneData && usernameTwoData) {
+      console.log('un1')
       console.log(usernameOneData)
-      console.log(usernameTwoData)
-      if (usernameOneData.message || usernameTwoData.message) {
-        if (usernameOneData.error) {
-          setError(usernameOneData.message)
-          console.log(usernameOneData.message)
+      console.log('un2')
+      console.log(usernameTwoData.artists.message)
+      if (usernameOneData.artists.message || usernameTwoData.artists.message) {
+        if (usernameOneData.artists.error) {
+          setError(usernameOneData.artists.message)
+          console.log(usernameOneData.artists.message)
         }
-        if (usernameTwoData.error) {
-          setError(usernameTwoData.message)
-          console.log(usernameTwoData.message)
+        if (usernameTwoData.artists.error) {
+          setError(usernameTwoData.artists.message)
+          console.log(usernameTwoData.artists.message)
         }
       } else {
         console.log('data is loaded')
+        console.log('usernameonedata', usernameOneData)
 
-        let userOneArtists = usernameOneData.topartists.artist.map(
-          (artist) => artist.name
-        )
-        let userTwoArtists = usernameTwoData.topartists.artist.map(
-          (artist) => artist.name
+        // find matching artists
+        let currentUserOneTopArtists =
+          usernameOneData.artists.topartists.artist.map((artist) => artist.name)
+        let currentUserTwoTopArtists =
+          usernameTwoData.artists.topartists.artist.map((artist) => artist.name)
+
+        let filteredArtists = currentUserOneTopArtists.filter((artist) =>
+          currentUserTwoTopArtists.includes(artist)
         )
 
-        let filteredArrays = userOneArtists.filter((artist) =>
-          userTwoArtists.includes(artist)
+        // console.log(filteredArtists)
+        setMatchingArtists(filteredArtists)
+
+        // find matching tracks
+        let currentUserOneTopTracks =
+          usernameOneData.tracks.toptracks.track.map((track) => track.name)
+        let currentUserTwoTopTracks =
+          usernameTwoData.tracks.toptracks.track.map((track) => track.name)
+
+        // find watch tracks appear on both lists
+        let filteredTracks = currentUserOneTopTracks.filter((artist) =>
+          currentUserTwoTopTracks.includes(artist)
         )
 
-        console.log(filteredArrays)
-        setMatchingArtists(filteredArrays)
+        // using filteredTracks, get the artists for those tracks
+        // let tracksWithArtists = filteredTracks.tracks.toptracks.track.map(
+        //   (track) => ({
+        //     trackName: track.name,
+        //     artist: track.artist.name,
+        //   })
+        // )
+        // console.log(usernameOneData.tracks)
+
+        let tracksWithArtists = []
+        usernameOneData.tracks.toptracks.track.forEach((track) => {
+          if (filteredTracks.includes(track.name)) {
+            // console.log('hit')
+            console.log(track.name)
+            // console.log(track.artist.name)
+            tracksWithArtists.push({trackName: track.name, trackArtists: track.artist.name})
+          }
+
+          // console.log(track)
+        })
+        // console.log('filtered tracks')
+        console.log(tracksWithArtists)
+        setMatchingTracks(tracksWithArtists)
       }
     }
   }, [usernameOneData, usernameTwoData])
@@ -143,12 +190,12 @@ const Home = () => {
         </div>
         <MatchDescription
           matchingArtists={matchingArtists}
+          matchingTracks={matchingTracks}
           isLoading={isLoading}
           hasSubmitted={hasSubmitted}
           error={error}
           staticUsernameOne={staticUsernameOne}
           staticUsernameTwo={staticUsernameTwo}
-
         />
         <MatchTable
           matchingArtists={matchingArtists}
