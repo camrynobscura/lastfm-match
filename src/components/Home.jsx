@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { getTopArtists, getTopTracks } from '../services/api'
 import MatchDescription from './MatchDescription'
 import MatchTable from './MatchTable'
+const exampleUsernameOne = import.meta.env.VITE_USERNAME_ONE
+const exampleUsernameTwo = import.meta.env.VITE_USERNAME_TWO
+
 
 const Home = () => {
   // data from form input
-  let [usernameOne, setUsernameOne] = useState('')
-  let [usernameTwo, setUsernameTwo] = useState('')
+  let [usernameOne, setUsernameOne] = useState(exampleUsernameOne)
+  let [usernameTwo, setUsernameTwo] = useState(exampleUsernameTwo)
 
   let [staticUsernameOne, setStaticUsernameOne] = useState('')
   let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
