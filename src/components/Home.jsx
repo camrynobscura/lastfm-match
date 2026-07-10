@@ -5,7 +5,6 @@ import MatchTable from './MatchTable'
 const exampleUsernameOne = import.meta.env.VITE_USERNAME_ONE
 const exampleUsernameTwo = import.meta.env.VITE_USERNAME_TWO
 
-
 const Home = () => {
   // data from form input
   let [usernameOne, setUsernameOne] = useState(exampleUsernameOne)
@@ -14,13 +13,13 @@ const Home = () => {
   let [staticUsernameOne, setStaticUsernameOne] = useState('')
   let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
 
-  let [timePeriod, setTimePeriod] = useState('7day')
+  let [timePeriod, setTimePeriod] = useState('1month')
   let [matchingArtists, setMatchingArtists] = useState([])
   let [matchingTracks, setMatchingTracks] = useState([])
 
   // data from api
-  let [usernameOneData, setusernameOneData] = useState()
-  let [usernameTwoData, setusernameTwoData] = useState()
+  let [usernameOneData, setUsernameOneData] = useState()
+  let [usernameTwoData, setUsernameTwoData] = useState()
 
   // component status data
   const [error, setError] = useState(null)
@@ -48,11 +47,11 @@ const Home = () => {
       let usernameTwoTopTracks = await getTopTracks(usernameTwo, timePeriod)
 
       // save the results
-      setusernameOneData({
+      setUsernameOneData({
         artists: usernameOneTopArtists,
         tracks: usernameOneTopTracks,
       })
-      setusernameTwoData({
+      setUsernameTwoData({
         artists: usernameTwoTopArtists,
         tracks: usernameTwoTopTracks,
       })
@@ -74,70 +73,102 @@ const Home = () => {
 
   useEffect(() => {
     if (usernameOneData && usernameTwoData) {
-      console.log('un1')
-      console.log(usernameOneData)
-      console.log('un2')
-      console.log(usernameTwoData.artists.message)
+      // console.log('un1')
+      // console.log(usernameOneData)
+      // console.log('un2')
+      // console.log(usernameTwoData.artists.message)
       if (usernameOneData.artists.message || usernameTwoData.artists.message) {
         if (usernameOneData.artists.error) {
           setError(usernameOneData.artists.message)
-          console.log(usernameOneData.artists.message)
+          // console.log(usernameOneData.artists.message)
         }
         if (usernameTwoData.artists.error) {
           setError(usernameTwoData.artists.message)
-          console.log(usernameTwoData.artists.message)
+          // console.log(usernameTwoData.artists.message)
         }
       } else {
         console.log('data is loaded')
         console.log('usernameonedata', usernameOneData)
+        console.log('usernametwodata', usernameTwoData)
 
         // find matching artists
         let currentUserOneTopArtists =
-          usernameOneData.artists.topartists.artist.map((artist) => artist.name)
+          usernameOneData.artists.topartists.artist.reduce((acc, obj) => {
+            acc[obj.name] = Number(obj.playcount)
+            return acc
+          }, {})
+
         let currentUserTwoTopArtists =
-          usernameTwoData.artists.topartists.artist.map((artist) => artist.name)
+          usernameTwoData.artists.topartists.artist.reduce((acc, obj) => {
+            acc[obj.name] = Number(obj.playcount)
+            return acc
+          }, {})
 
-        let filteredArtists = currentUserOneTopArtists.filter((artist) =>
-          currentUserTwoTopArtists.includes(artist)
-        )
-
-        // console.log(filteredArtists)
-        setMatchingArtists(filteredArtists)
-
-        // find matching tracks
         let currentUserOneTopTracks =
-          usernameOneData.tracks.toptracks.track.map((track) => track.name)
+          usernameOneData.tracks.toptracks.track.reduce((acc, obj) => {
+            acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
+            return acc
+          }, {})
+
+          console.log(currentUserOneTopTracks)
+
         let currentUserTwoTopTracks =
-          usernameTwoData.tracks.toptracks.track.map((track) => track.name)
+          usernameOneData.tracks.toptracks.track.reduce((acc, obj) => {
+            acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
+            return acc
+          }, {})
 
-        // find watch tracks appear on both lists
-        let filteredTracks = currentUserOneTopTracks.filter((artist) =>
-          currentUserTwoTopTracks.includes(artist)
-        )
+        function musicCompatibility(artists_a, artists_b, tracks_a, tracks_b) {
+          const artistScore = getScore(artists_a, artists_b)
+          const trackScore = getScore(tracks_a, tracks_b)
 
-        // using filteredTracks, get the artists for those tracks
-        // let tracksWithArtists = filteredTracks.tracks.toptracks.track.map(
-        //   (track) => ({
-        //     trackName: track.name,
-        //     artist: track.artist.name,
-        //   })
-        // )
-        // console.log(usernameOneData.tracks)
+          const combined = artistScore * 0.6 + trackScore * 0.4
+          // artists weighted more heavily because track overlap is rarer
 
-        let tracksWithArtists = []
-        usernameOneData.tracks.toptracks.track.forEach((track) => {
-          if (filteredTracks.includes(track.name)) {
-            // console.log('hit')
-            console.log(track.name)
-            // console.log(track.artist.name)
-            tracksWithArtists.push({trackName: track.name, trackArtists: track.artist.name})
+          return {
+            score: Math.round(combined * 100),
+            sharedArtists: getShared(artists_a, artists_b),
+            sharedTracks: getShared(tracks_a, tracks_b),
+          }
+        }
+
+        function getScore(a, b) {
+          const setA = new Set(Object.keys(a))
+          const setB = new Set(Object.keys(b))
+          const shared = [...setA].filter((k) => setB.has(k))
+
+          const totalA = Object.values(a).reduce((s, v) => s + v, 0)
+          const totalB = Object.values(b).reduce((s, v) => s + v, 0)
+
+          let boost = 0
+          for (const item of shared) {
+            boost += Math.min(a[item] / totalA, b[item] / totalB)
           }
 
-          // console.log(track)
-        })
-        // console.log('filtered tracks')
-        console.log(tracksWithArtists)
-        setMatchingTracks(tracksWithArtists)
+          return boost
+          // just using boost, no jaccard, so scores aren't dragged down
+        }
+
+        function getShared(a, b) {
+          const setB = new Set(Object.keys(b))
+          return Object.keys(a).filter((k) => setB.has(k))
+        }
+
+        const result = musicCompatibility(
+          currentUserOneTopArtists,
+          currentUserTwoTopArtists,
+          currentUserOneTopTracks,
+          currentUserTwoTopTracks,
+        )
+        console.log(result.score) // combined %
+        console.log(result.sharedArtists) // ['Radiohead', 'Lorde']
+        console.log(result.sharedTracks) // ['Creep', 'Karma Police']
+        console.log(result)
+
+        /////////////
+
+        setMatchingTracks(result.sharedTracks)
+        setMatchingArtists(result.sharedArtists)
       }
     }
   }, [usernameOneData, usernameTwoData])
@@ -147,9 +178,9 @@ const Home = () => {
       <div className='head'>
         <h1>Last.fm Match</h1>
         <p className='app-description'>
-          Find out how compatible your music taste is with another user. Enter
-          your username and a friend's to see what artists and tracks you have
-          in common.
+          Enter your last.fm username and a friend's to find your music
+          compatability rating and see what artists and tracks you have in
+          common!
         </p>
       </div>
       <div className='content'>
