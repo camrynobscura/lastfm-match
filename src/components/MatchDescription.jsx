@@ -1,5 +1,6 @@
 import CommonArtistsDescription from './CommonArtistsDescription'
 import CommonTracksDescription from './CommonTracksDescription'
+import LoadingIndicator from './LoadingIndicator'
 
 const MatchDescription = ({
   score,
@@ -19,7 +20,7 @@ const MatchDescription = ({
   return (
     <div className='match-description'>
       {isLoading ? (
-        <p>data is being loaded</p>
+        <LoadingIndicator />
       ) : (
         <>
           {error ? (
