@@ -126,7 +126,8 @@ const Home = () => {
           // artists weighted more heavily because track overlap is rarer
 
           return {
-            score: Math.round(combined * 100),
+            // fourth root stretches low raw overlap scores into a friendlier 0-100 range
+            score: Math.round(Math.pow(combined, 1 / 4) * 100),
             sharedArtists: getShared(artists_a, artists_b),
             sharedTracks: getShared(tracks_a, tracks_b),
           }
@@ -160,7 +161,7 @@ const Home = () => {
           currentUserOneTopTracks,
           currentUserTwoTopTracks,
         )
-        console.log(result.score) // combined %
+        console.log('SCORE____________', result.score) // combined %
         console.log(result.sharedArtists) // ['Radiohead', 'Lorde']
         console.log(result.sharedTracks) // ['Creep', 'Karma Police']
         console.log(result)
