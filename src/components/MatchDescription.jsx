@@ -2,6 +2,7 @@ import CommonArtistsDescription from './CommonArtistsDescription'
 import CommonTracksDescription from './CommonTracksDescription'
 
 const MatchDescription = ({
+  score,
   matchingArtists,
   matchingTracks,
   isLoading,
@@ -35,7 +36,7 @@ const MatchDescription = ({
                     </div>
                     <div className='compatability-percentage'>
                       <div>
-                        <p>You are 90% compatible!</p>
+                        <p>You are {score}% compatible!</p>
                       </div>
                     </div>
                   </div>

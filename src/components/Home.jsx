@@ -16,6 +16,7 @@ const Home = () => {
   let [timePeriod, setTimePeriod] = useState('1month')
   let [matchingArtists, setMatchingArtists] = useState([])
   let [matchingTracks, setMatchingTracks] = useState([])
+  let [compatibilityScore, setCompatibilityScore] = useState(0)
 
   // data from api
   let [usernameOneData, setUsernameOneData] = useState()
@@ -32,6 +33,7 @@ const Home = () => {
     setStaticUsernameTwo(usernameTwo)
     setError(null)
     setHasSubmitted(false)
+    setCompatibilityScore(0)
     // check if fields are empty
     if (!usernameOne.trim()) return
     if (!usernameTwo.trim()) return
@@ -110,10 +112,8 @@ const Home = () => {
             return acc
           }, {})
 
-          console.log(currentUserOneTopTracks)
-
         let currentUserTwoTopTracks =
-          usernameOneData.tracks.toptracks.track.reduce((acc, obj) => {
+          usernameTwoData.tracks.toptracks.track.reduce((acc, obj) => {
             acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
             return acc
           }, {})
@@ -126,7 +126,8 @@ const Home = () => {
           // artists weighted more heavily because track overlap is rarer
 
           return {
-            score: Math.round(combined * 100),
+            // fourth root stretches low raw overlap scores into a friendlier 0-100 range
+            score: Math.round(Math.pow(combined, 1 / 4) * 100),
             sharedArtists: getShared(artists_a, artists_b),
             sharedTracks: getShared(tracks_a, tracks_b),
           }
@@ -160,7 +161,7 @@ const Home = () => {
           currentUserOneTopTracks,
           currentUserTwoTopTracks,
         )
-        console.log(result.score) // combined %
+        console.log('SCORE____________', result.score) // combined %
         console.log(result.sharedArtists) // ['Radiohead', 'Lorde']
         console.log(result.sharedTracks) // ['Creep', 'Karma Police']
         console.log(result)
@@ -169,6 +170,7 @@ const Home = () => {
 
         setMatchingTracks(result.sharedTracks)
         setMatchingArtists(result.sharedArtists)
+        setCompatibilityScore(result.score)
       }
     }
   }, [usernameOneData, usernameTwoData])
@@ -223,6 +225,7 @@ const Home = () => {
           </div>
         </div>
         <MatchDescription
+          score={compatibilityScore}
           matchingArtists={matchingArtists}
           matchingTracks={matchingTracks}
           isLoading={isLoading}
