@@ -16,6 +16,7 @@ const Home = () => {
   let [timePeriod, setTimePeriod] = useState('1month')
   let [matchingArtists, setMatchingArtists] = useState([])
   let [matchingTracks, setMatchingTracks] = useState([])
+  let [compatibilityScore, setCompatibilityScore] = useState(0)
 
   // data from api
   let [usernameOneData, setUsernameOneData] = useState()
@@ -32,6 +33,7 @@ const Home = () => {
     setStaticUsernameTwo(usernameTwo)
     setError(null)
     setHasSubmitted(false)
+    setCompatibilityScore(0)
     // check if fields are empty
     if (!usernameOne.trim()) return
     if (!usernameTwo.trim()) return
@@ -110,10 +112,8 @@ const Home = () => {
             return acc
           }, {})
 
-          console.log(currentUserOneTopTracks)
-
         let currentUserTwoTopTracks =
-          usernameOneData.tracks.toptracks.track.reduce((acc, obj) => {
+          usernameTwoData.tracks.toptracks.track.reduce((acc, obj) => {
             acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
             return acc
           }, {})
@@ -169,6 +169,7 @@ const Home = () => {
 
         setMatchingTracks(result.sharedTracks)
         setMatchingArtists(result.sharedArtists)
+        setCompatibilityScore(result.score)
       }
     }
   }, [usernameOneData, usernameTwoData])
@@ -223,6 +224,7 @@ const Home = () => {
           </div>
         </div>
         <MatchDescription
+          score={compatibilityScore}
           matchingArtists={matchingArtists}
           matchingTracks={matchingTracks}
           isLoading={isLoading}
