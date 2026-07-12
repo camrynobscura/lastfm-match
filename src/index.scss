@@ -214,52 +214,32 @@ h1 {
 
   .match-description-head {
     margin-bottom: 20px;
-  // min-height: 200px;
-
-    // display: grid;
-    // grid-template-columns: 1fr 1fr;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    // column-gap: 10px;
+    gap: 16px;
+
     .compatability-percentage {
-      // padding: 20px;
-      // margin: 20px;
       display: flex;
       justify-content: center;
-      // align-self: center;
-
-      width: 50%;
-      // height: 115%;
-      min-height: 180px;
-      // min-width: 160px;
-
-
-      div {
-         background-color: $main-color;
-      color: $secondary-color;
-      border-radius: 100%;
-      margin: 10px;
-      display: flex;
-        p {
-        align-self: center;
-      }
-      }
     }
-    // flex-direction: row;
-    .user-versus {
-      padding: 20px 0;
-      // margin-bottom: 20px;
-      // align-self: center;
-      height: 100%;
-      width: 50%;
-      // border: 3px solid $main-color;
 
+    .names-caption {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
     }
   }
   .artists-description {
     padding-bottom: 20px;
+  }
+
+  .empty-state {
+    max-width: 200px;
+    opacity: 0.6;
   }
 }
 
@@ -271,6 +251,70 @@ h1 {
   color: $tertiary-color;
   font-weight: bold;
   text-transform: uppercase;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 10px;
+
+  .score-ring {
+    position: relative;
+    width: 170px;
+    height: 170px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      // start the arc sweep from 12 o'clock instead of 3 o'clock
+      transform: rotate(-90deg);
+    }
+  }
+
+  .ring-track {
+    fill: $main-color;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke: $tertiary-color;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .score-ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: $main-accent-color;
+
+    .score-number {
+      font-weight: bold;
+      font-size: 3.5rem;
+      line-height: 0.8;
+
+      &.three-digits {
+        font-size: 3rem;
+      }
+
+      .score-pct-sign {
+        font-size: 0.7em;
+        margin-left: 2px;
+        font-weight: normal;
+      }
+    }
+
+    .score-caption {
+      color: $secondary-color;
+      font-size: 0.9rem;
+    }
+  }
+
 }
 
 .loading-indicator {
@@ -322,8 +366,39 @@ h1 {
   }
 }
 
+.match-results {
+  .names-caption,
+  .compatability-percentage,
+  .match-lists {
+    // backwards fill keeps delayed items invisible until their turn
+    animation: rise-in 0.4s ease-out backwards;
+  }
+  .compatability-percentage {
+    animation-delay: 0.12s;
+  }
+  .match-lists {
+    animation-delay: 0.24s;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .loading-indicator .equalizer span {
+    animation: none;
+  }
+  .match-results .names-caption,
+  .match-results .compatability-percentage,
+  .match-results .match-lists {
     animation: none;
   }
 }
