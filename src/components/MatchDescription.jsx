@@ -1,6 +1,7 @@
 import CommonArtistsDescription from './CommonArtistsDescription'
 import CommonTracksDescription from './CommonTracksDescription'
 import LoadingIndicator from './LoadingIndicator'
+import ScoreDisplay from './ScoreDisplay'
 
 const MatchDescription = ({
   score,
@@ -27,22 +28,21 @@ const MatchDescription = ({
             <p>{error}</p>
           ) : (
             <>
-              {hasSubmitted && (
-                <div>
+              {hasSubmitted ? (
+                <div className='match-results'>
                   {/* <h3>Your Common Artists</h3> */}
                   <div className='match-description-head'>
-                    <div className='user-versus'>
-                      <h2>{staticUsernameOne}</h2> <p>&</p>{' '}
-                      <h2>{staticUsernameTwo}</h2>
-                    </div>
+                    <p className='names-caption'>
+                      {staticUsernameOne}{' '}
+                      <span className='highlight-word'>×</span>{' '}
+                      {staticUsernameTwo}
+                    </p>
                     <div className='compatability-percentage'>
-                      <div>
-                        <p>You are {score}% compatible!</p>
-                      </div>
+                      <ScoreDisplay score={score} />
                     </div>
                   </div>
 
-                  <div>
+                  <div className='match-lists'>
                     {/* if you have no tracks or artists in common */}
                     {matchingArtists.length === 0 &&
                       matchingTracks.length === 0 && (
@@ -98,6 +98,10 @@ const MatchDescription = ({
                   </div>
 
                 </div>
+              ) : (
+                <p className='empty-state'>
+                  your match results will appear here...
+                </p>
               )}
             </>
           )}

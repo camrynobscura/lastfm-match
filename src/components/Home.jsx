@@ -34,6 +34,8 @@ const Home = () => {
     setError(null)
     setHasSubmitted(false)
     setCompatibilityScore(0)
+    setMatchingArtists([])
+    setMatchingTracks([])
     // check if fields are empty
     if (!usernameOne.trim()) return
     if (!usernameTwo.trim()) return
