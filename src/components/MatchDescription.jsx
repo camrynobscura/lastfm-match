@@ -13,8 +13,6 @@ const MatchDescription = ({
   staticUsernameTwo,
   error,
 }) => {
-  // console.log(matchingArtists)
-
   let truncatedMatchingArtists = matchingArtists.slice(0, 5)
   let truncatedMatchingTracks = matchingTracks.slice(0, 3)
 

@@ -6,7 +6,7 @@ $main-accent-color: rgba(217, 241, 236, 1);
 $secondary-color: rgb(172, 196, 221);
 $secondary-color-opaque: rgba(223, 223, 181, 0.5);
 // $tertiary-color: rgba(203, 42, 235, 1);
-$tertiary-color: rgb(15, 156, 235);
+$tertiary-color: rgb(14, 143, 217);
 // rgb(201, 255, 243)
 // rgb(15, 156, 235)
 
@@ -14,16 +14,26 @@ $tertiary-color: rgb(15, 156, 235);
   // border: 1px solid red;
 }
 
+// visible to screen readers only; gives inputs an accessible name
+// without changing the visual layout
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 :root {
   font-family:  "SUSE Mono", Avenir, Helvetica, Arial, sans-serif;
-  // font-kerning: 1.5;
-  // letter-spacing: 3.5;
   line-height: 1.5;
   font-weight: 400;
-
+  font-size: 16px;
   color-scheme: light dark;
-
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -33,9 +43,10 @@ $tertiary-color: rgb(15, 156, 235);
 button,
 input,
 select,
-textarea {
+textarea,
+p {
   font-family: inherit;
-  font-size: 100%;
+  font-size: 1rem;
 }
 
 a {
@@ -56,11 +67,9 @@ body {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 20px;
   text-align: center;
 }
-
-
 
 body {
   margin: 0;
@@ -68,12 +77,10 @@ body {
   place-items: start;
   min-width: 320px;
   min-height: 100vh;
-  padding: 60px 0;
-  // font-size: 12px;
 }
 
 h1 {
-  font-size: 6rem;
+  font-size: 4rem;
   line-height: 1.1;
   margin: 0;
   padding: 0;
@@ -86,24 +93,34 @@ h1 {
 }
 
 .head {
-  padding-bottom: 36px;
+  padding-top: 36px;
+  padding-bottom: 64px;
   .app-description {
     max-width: 400px;
     margin: 24px auto 0px;
-    // margin: 0 auto;
   }
 }
 
+// .form-and-results {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+//   column-gap: 20px;
+//   row-gap: 20px;
+//   // border: 1px solid green;
+//   div {
+//     border-radius: 8px;
+//   }
+// }
+
 .content {
   display: grid;
+  // 2x2 with four children on desktop, stacks to one column on phones;
+  // rows auto-size so a collapsed table row stays short
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  column-gap: 20px;
-  row-gap: 20px;
-  // border: 1px solid green;
-  div {
-    border-radius: 8px;
-  }
+  grid-column-gap: 20px;
+  grid-row-gap: 20px;
 }
+
 
 .form {
   // min-height: 300px;
@@ -173,12 +190,6 @@ h1 {
     border: 2px solid $secondary-color;
     background-color: $main-color;
 
-    // &::placeholder {
-    //   color: var(--secondary-color-opaque);
-    // }
-    // &::picker(select) {
-    //   appearance: base-select;
-    // }
   }
 
   button {
@@ -317,11 +328,224 @@ h1 {
 
 }
 
+.secondary-results {
+  // joins the results cascade, after .match-lists
+  animation: rise-in 0.4s ease-out backwards;
+  animation-delay: 0.36s;
+
+  // the tracks table follows the artists table into view
+  & + & {
+    animation-delay: 0.44s;
+  }
+
+  .match-table-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    color: $main-color;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($main-color, 0.07);
+    }
+  }
+
+  // plus made of two bars; the vertical one rotates flat to become a minus
+  .plus-minus {
+    position: relative;
+    flex: none;
+    width: 0.7em;
+    height: 0.7em;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      background: $main-color;
+      transition: transform 0.25s ease;
+    }
+
+    &::before {
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      transform: translateY(-50%);
+    }
+
+    &::after {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+    }
+  }
+
+  .match-table-toggle[aria-expanded='true'] .plus-minus::after {
+    transform: translateX(-50%) rotate(90deg);
+  }
+
+  // 0fr -> 1fr grid row slides the whole card open
+  .match-table-reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s ease;
+
+    &.open {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  .match-table-reveal-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+}
+
+// the bordered box holds the toggle; the lists unfold inside it
+.match-table {
+  border: 3px solid $main-color;
+  padding: 10px 18px;
+
+  .match-table-lists {
+    text-align: left;
+    padding: 20px 4px 14px;
+  }
+
+  .shared-list-heading {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    // text-decoration: dashed;
+    // lines up with the single-digit rank numbers in the rows below
+    padding-left: 14px;
+    padding-bottom: 4px;
+    // border-bottom: 2px dotted $main-color;
+
+    span {
+      font-weight: 400;
+    }
+  }
+
+
+  // lightens whatever's behind the row, so it holds up if the page
+  // background ever changes
+  .shared-item:nth-of-type(even) {
+    background: rgba($tertiary-color, 0.2);
+  }
+
+  .shared-item-head {
+    display: flex;
+    // rank sits on the first line of the name, not centered over wrapped rows
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: $main-color;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($main-color, 0.07);
+    }
+  }
+
+  .shared-item-rank {
+    flex: none;
+    width: 2.2ch;
+    text-align: right;
+    font-size: 0.85rem;
+  }
+
+  .shared-item-name {
+    font-weight: 700;
+    min-width: 0;
+    // long track + artist combos wrap to a second line instead of
+    // getting cut off at the row edge
+    overflow-wrap: anywhere;
+  }
+
+  .shared-item-artist {
+    // artist on its own line under the track name
+    display: block;
+    font-size: 0.78em;
+    font-weight: 400;
+  }
+
+  .shared-item-head .plus-minus {
+    margin-left: auto;
+  }
+
+  .shared-item.open .plus-minus::after {
+    transform: translateX(-50%) rotate(90deg);
+  }
+
+  // 0fr -> 1fr grid row animates the dropdown open
+  .shared-item-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+
+  .shared-item.open .shared-item-body {
+    grid-template-rows: 1fr;
+  }
+
+  .shared-item-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .play-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 10px 5px 40px;
+    font-size: 1rem;
+
+    &:first-child {
+      padding-top: 6px;
+    }
+    &:last-child {
+      padding-bottom: 16px;
+    }
+  }
+
+  .play-user {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .loading-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 26px;
+
+  p {
+    max-width: 260px;
+  }
 
   .equalizer {
     display: flex;
@@ -400,5 +624,15 @@ h1 {
   .match-results .compatability-percentage,
   .match-results .match-lists {
     animation: none;
+  }
+  .secondary-results {
+    animation: none;
+
+    .plus-minus::before,
+    .plus-minus::after,
+    .match-table-reveal,
+    .shared-item-body {
+      transition: none;
+    }
   }
 }

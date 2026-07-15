@@ -63,8 +63,7 @@ const Home = () => {
       // let comparisonData = await compareUsers()
 
       setError(null)
-    } catch (err) {
-      console.log(err)
+    } catch {
       setError('request failed')
     } finally {
       setIsLoading(false)
@@ -77,24 +76,14 @@ const Home = () => {
 
   useEffect(() => {
     if (usernameOneData && usernameTwoData) {
-      // console.log('un1')
-      // console.log(usernameOneData)
-      // console.log('un2')
-      // console.log(usernameTwoData.artists.message)
       if (usernameOneData.artists.message || usernameTwoData.artists.message) {
         if (usernameOneData.artists.error) {
           setError(usernameOneData.artists.message)
-          // console.log(usernameOneData.artists.message)
         }
         if (usernameTwoData.artists.error) {
           setError(usernameTwoData.artists.message)
-          // console.log(usernameTwoData.artists.message)
         }
       } else {
-        console.log('data is loaded')
-        console.log('usernameonedata', usernameOneData)
-        console.log('usernametwodata', usernameTwoData)
-
         // find matching artists
         let currentUserOneTopArtists =
           usernameOneData.artists.topartists.artist.reduce((acc, obj) => {
@@ -154,7 +143,19 @@ const Home = () => {
 
         function getShared(a, b) {
           const setB = new Set(Object.keys(b))
-          return Object.keys(a).filter((k) => setB.has(k))
+          const totalA = Object.values(a).reduce((s, v) => s + v, 0)
+          const totalB = Object.values(b).reduce((s, v) => s + v, 0)
+          return Object.keys(a)
+            .filter((k) => setB.has(k))
+            .map((k) => ({ key: k, playcountOne: a[k], playcountTwo: b[k] }))
+            .sort(
+              (x, y) =>
+                y.playcountOne / totalA +
+                y.playcountTwo / totalB -
+                (x.playcountOne / totalA + x.playcountTwo / totalB),
+            )
+          // ranked by combined share of each person's listening, so one
+          // heavy listener's raw counts can't dominate the order
         }
 
         const result = musicCompatibility(
@@ -163,13 +164,6 @@ const Home = () => {
           currentUserOneTopTracks,
           currentUserTwoTopTracks,
         )
-        console.log('SCORE____________', result.score) // combined %
-        console.log(result.sharedArtists) // ['Radiohead', 'Lorde']
-        console.log(result.sharedTracks) // ['Creep', 'Karma Police']
-        console.log(result)
-
-        /////////////
-
         setMatchingTracks(result.sharedTracks)
         setMatchingArtists(result.sharedArtists)
         setCompatibilityScore(result.score)
@@ -178,58 +172,66 @@ const Home = () => {
   }, [usernameOneData, usernameTwoData])
 
   return (
-    <div>
-      <div className='head'>
+    <>
+      <header className='head'>
         <h1>Last.fm Match</h1>
         <p className='app-description'>
           Enter your last.fm username and a friend's to find your music
           compatability rating and see what artists and tracks you have in
           common!
         </p>
-      </div>
-      <div className='content'>
-        <div>
-          <div className='form'>
-            <form className='form-content' onSubmit={handleSubmit}>
-              <input
-                // name='username '
-                type='text'
-                placeholder='Username 1'
-                className='search-input'
-                value={usernameOne}
-                onChange={(e) => setUsernameOne(e.target.value)}
-              />
-              <input
-                type='text'
-                placeholder='Username 2'
-                className='search-input'
-                value={usernameTwo}
-                onChange={(e) => setUsernameTwo(e.target.value)}
-              />
-              <div className='select'>
-                <select
-                  defaultValue='1month'
-                  name=''
-                  id=''
-                  onChange={(e) => setTimePeriod(e.target.value)}
-                >
-                  <option value='7day'>1 Week</option>
-                  <option value='1month'>1 Month</option>
-                  <option value='3month'>3 Months</option>
-                  <option value='6month'>6 Months</option>
-                  <option value='12month'>1 Year</option>
-                  <option value='overall'>All Time</option>
-                </select>
-                <span class='focus'></span>
-              </div>
-              <button type='submit'>Match</button>
-            </form>
-          </div>
+      </header>
+      <main className='content'>
+        <div className='form'>
+          <form className='form-content' onSubmit={handleSubmit}>
+            <label className='sr-only' htmlFor='username-one'>
+              Username 1
+            </label>
+            <input
+              id='username-one'
+              type='text'
+              placeholder='Username 1'
+              className='search-input'
+              value={usernameOne}
+              onChange={(e) => setUsernameOne(e.target.value)}
+            />
+            <label className='sr-only' htmlFor='username-two'>
+              Username 2
+            </label>
+            <input
+              id='username-two'
+              type='text'
+              placeholder='Username 2'
+              className='search-input'
+              value={usernameTwo}
+              onChange={(e) => setUsernameTwo(e.target.value)}
+            />
+            <div className='select'>
+              <label className='sr-only' htmlFor='time-period'>
+                Time period
+              </label>
+              <select
+                id='time-period'
+                name='time-period'
+                defaultValue='1month'
+                onChange={(e) => setTimePeriod(e.target.value)}
+              >
+                <option value='7day'>1 Week</option>
+                <option value='1month'>1 Month</option>
+                <option value='3month'>3 Months</option>
+                <option value='6month'>6 Months</option>
+                <option value='12month'>1 Year</option>
+                <option value='overall'>All Time</option>
+              </select>
+              <span className='focus'></span>
+            </div>
+            <button type='submit'>Match</button>
+          </form>
         </div>
         <MatchDescription
           score={compatibilityScore}
-          matchingArtists={matchingArtists}
-          matchingTracks={matchingTracks}
+          matchingArtists={matchingArtists.map((artist) => artist.key)}
+          matchingTracks={matchingTracks.map((track) => track.key)}
           isLoading={isLoading}
           hasSubmitted={hasSubmitted}
           error={error}
@@ -237,13 +239,27 @@ const Home = () => {
           staticUsernameTwo={staticUsernameTwo}
         />
         <MatchTable
-          matchingArtists={matchingArtists}
+          heading='shared artists'
+          items={matchingArtists}
           isLoading={isLoading}
           hasSubmitted={hasSubmitted}
           error={error}
+          staticUsernameOne={staticUsernameOne}
+          staticUsernameTwo={staticUsernameTwo}
         />
-      </div>
-    </div>
+        <MatchTable
+          heading='shared tracks'
+          items={matchingTracks}
+          isTracks
+          isLoading={isLoading}
+          hasSubmitted={hasSubmitted}
+          error={error}
+          staticUsernameOne={staticUsernameOne}
+          staticUsernameTwo={staticUsernameTwo}
+        />
+
+      </main>
+    </>
   )
 }
 

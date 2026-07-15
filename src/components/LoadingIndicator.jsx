@@ -8,7 +8,7 @@ const LoadingIndicator = () => {
         <span></span>
         <span></span>
       </div>
-      <p>finding your matches...</p>
+      <p>finding your compatibility score...</p>
     </div>
   )
 }
