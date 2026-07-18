@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { parseTrackKey } from '../lib/compatibility'
+import { getDisplayPage } from '../lib/pagination'
 
 const PAGE_SIZE = 10
 
@@ -86,15 +87,9 @@ const MatchTable = ({
   // nothing in this list: MatchDescription already explains it
   if (items.length === 0) return null
 
-  // keep the list browsable: top 100
-  const displayed = items.slice(0, 100)
-  const visible = displayed.slice(0, visibleCount)
-  const hasMore = visibleCount < displayed.length
-
-  // one shared scale across the full pool (not just the visible page), so
-  // bars already on screen don't rescale as more rows get revealed
-  const max = Math.max(
-    ...displayed.flatMap((item) => [item.playcountOne, item.playcountTwo]),
+  const { displayed, visible, hasMore, max } = getDisplayPage(
+    items,
+    visibleCount,
   )
 
   return (
