@@ -6,20 +6,23 @@
 // ============================================================
 
 // leftover from the original mockup palette. $ring-text-color and
-// $focus-color are named for their one job each (the score ring's text,
-// the focus-ring border); $light-blue is named for its hue since it
+// $soft-blue are named for their one job each (the score ring's text,
+// the focus-ring border); $soft-blue is named for its hue since it
 // does double duty -- it's both the page background and a light
 // text/border color used throughout the dark match-table panel
 $ring-text-color: rgba(217, 241, 236, 1);
 $light-blue: rgb(172, 196, 221);
-$focus-color: rgb(14, 143, 217);
+
+
 
 // candy accents carried over from the Page Break mockup redesign
-$accent-yellow: #f0ff42;
 $ink: #141218;
 $orange: #ff4b32;
 $electric-blue: #0075ff;
+$soft-blue: #bedcff;
 $soft-white: #eeeeee;
+$highlight: rgb(239, 129, 74);
+$form-field: #e3effc;
 
 // condensed display face; SUSE Mono (set on :root below) stays the
 // body/UI font
@@ -75,7 +78,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   color: $ink;
-  background-color: $light-blue;
+  background-color: $soft-blue;
   // the shared-list panels break out to full viewport width below;
   // this guards against the 100vw/scrollbar sliver that can cause
   // a horizontal scroll in some browsers
@@ -83,7 +86,7 @@ body {
 }
 
 ::selection {
-  background: $accent-yellow;
+  background: $soft-blue;
   color: $ink;
 }
 
@@ -208,14 +211,17 @@ h1 {
     border: 2px solid $ink;
     border-radius: 0;
     // same background as the listener one/two fields
-    background-color: rgba($electric-blue, 0.1);
+    // background-color: rgba($electric-blue, 0.1);
+    background-color: $form-field;
+
+
     color: $ink;
 
     // focus ring lives on the wrapper itself (no extra overlay element to
     // fight with pointer-events) -- :focus-within matches whenever the
     // <select> inside has focus
     &:focus-within {
-      border-color: $focus-color;
+      border-color: $soft-blue;
     }
   }
   .select::after {
@@ -288,7 +294,8 @@ h1 {
     // black border instead of navy, matching the mockup
     border: 2px solid $ink;
     border-radius: 0;
-    background-color: rgba($electric-blue, 0.1);
+    // background-color: rgba($electric-blue, 0.1);
+    background-color: $form-field;
 
     .at {
       color: $electric-blue;
@@ -325,7 +332,7 @@ h1 {
     // swap the border color itself instead of layering a separate outline
     // on top of the permanent black border -- same fix as .select below,
     // avoids showing both colors as a border-within-a-border
-    border-color: $focus-color;
+    border-color: $soft-blue;
   }
 
   // date range sits left, the button sits right, on the same row
@@ -519,7 +526,7 @@ h1 {
 }
 
 .highlight-word {
-  background: $accent-yellow;
+  background: $highlight;
   color: $ink;
   font-family: $display-font;
   font-weight: 700;
@@ -585,7 +592,7 @@ h1 {
     }
 
     .score-caption {
-      color: $light-blue;
+      color: $soft-blue;
       font-size: 0.9rem;
     }
   }
@@ -653,7 +660,7 @@ h1 {
     // thin orange seam, scoped to the inner content column (not the full
     // 100vw bleed of .shared-list-panel itself)
     .match-table-lists {
-      border-top: 3px solid $orange;
+      border-top: 2px solid rgba($soft-blue, 1);
     }
   }
 }
@@ -668,6 +675,8 @@ h1 {
     text-align: left;
     max-width: 800px;
     margin: 0 auto;
+    color: $soft-white;
+
   }
 
   .section-head {
@@ -678,6 +687,7 @@ h1 {
     gap: 16px;
     margin-bottom: 20px;
     margin-top: 20px;
+
   }
 
   .shared-list-heading {
@@ -687,6 +697,8 @@ h1 {
     font-weight: 700;
     line-height: 0.95;
     text-transform: uppercase;
+    // color: $soft-blue !important;
+
 
     .count {
       font-weight: 400;
@@ -876,18 +888,18 @@ h1 {
 .match-table--dark {
   // black background, matching the mockup's dark section (not navy)
   background: $ink;
-  color: $light-blue;
+  color: $soft-blue;
   border-color: $ink;
 
   .shared-list-heading {
-    color: $light-blue;
+    color: $soft-blue;
   }
 
   .swatch,
   .fill,
   .plays-dot {
     &.one {
-      background: $accent-yellow;
+      background: $electric-blue;
     }
   }
 
@@ -900,7 +912,7 @@ h1 {
   }
 
   .row-name .secondary {
-    color: rgba($light-blue, 0.85);
+    color: rgba($soft-blue, 0.85);
   }
 
   .bar-track {
@@ -908,15 +920,15 @@ h1 {
   }
 
   .plays {
-    color: $light-blue;
+    color: $soft-blue;
   }
 
   .see-more {
-    border-color: $light-blue;
-    color: $light-blue;
+    border-color: $soft-blue;
+    color: $soft-blue;
 
     &:hover {
-      background: $light-blue;
+      background: $soft-blue;
       color: $ink;
     }
   }
