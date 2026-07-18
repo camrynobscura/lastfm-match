@@ -36,7 +36,3 @@ Requires a `.env` file (not committed) with:
 - `src/components/CommonArtistsDescription.jsx` / `CommonTracksDescription.jsx` — render the truncated (top 5 artists / top 3 tracks) shared-item lists as prose sentences.
 - `src/components/MatchTable.jsx` — renders the full shared-artists/shared-tracks bar-chart comparison tables (paginated, 10 items per page with a "see more" button), rendered twice from `Home.jsx` (once per list).
 - `src/components/ErrorMessage.jsx` / `src/components/DownArrow.jsx` — the error box and the animated section-connector arrows.
-
-## Known issues to be aware of
-
-- `src/services/api.js` calls the Last.fm API over plain `http://`.
