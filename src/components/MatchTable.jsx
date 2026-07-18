@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { parseTrackKey } from '../lib/compatibility'
 
 const PAGE_SIZE = 10
 
@@ -118,18 +119,15 @@ const MatchTable = ({
             </div>
             <div className='rows'>
               {visible.map((item, i) => {
-                // track keys look like "Artist :: Track"
-                const separator = isTracks ? item.key.indexOf(' :: ') : -1
+                const { artist, track } = isTracks
+                  ? parseTrackKey(item.key)
+                  : { artist: undefined, track: item.key }
                 return (
                   <SharedRow
                     key={item.key}
                     rank={i + 1}
-                    name={
-                      isTracks ? item.key.slice(separator + 4) : item.key
-                    }
-                    artist={
-                      isTracks ? item.key.slice(0, separator) : undefined
-                    }
+                    name={track}
+                    artist={artist}
                     playcountOne={item.playcountOne}
                     playcountTwo={item.playcountTwo}
                     max={max}

@@ -1,5 +1,9 @@
 import { useMemo } from 'react'
-import { musicCompatibility, toPlaycountMap } from '../lib/compatibility'
+import {
+  musicCompatibility,
+  toPlaycountMap,
+  toTrackKey,
+} from '../lib/compatibility'
 import { describeUserError } from '../lib/lastfmErrors'
 
 const EMPTY_RESULT = {
@@ -53,11 +57,11 @@ export function useMatchComparison(
     )
     const tracksA = toPlaycountMap(
       usernameOneData.tracks.toptracks.track,
-      (t) => `${t.artist.name} :: ${t.name}`,
+      (t) => toTrackKey(t.artist.name, t.name),
     )
     const tracksB = toPlaycountMap(
       usernameTwoData.tracks.toptracks.track,
-      (t) => `${t.artist.name} :: ${t.name}`,
+      (t) => toTrackKey(t.artist.name, t.name),
     )
 
     const result = musicCompatibility(artistsA, artistsB, tracksA, tracksB)

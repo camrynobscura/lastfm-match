@@ -4,7 +4,28 @@ import {
   getScore,
   getShared,
   musicCompatibility,
+  toTrackKey,
+  parseTrackKey,
 } from './compatibility'
+
+describe('toTrackKey / parseTrackKey', () => {
+  it('round-trips an artist and track name', () => {
+    const key = toTrackKey('Charli XCX', 'Von dutch')
+    expect(key).toBe('Charli XCX :: Von dutch')
+    expect(parseTrackKey(key)).toEqual({
+      artist: 'Charli XCX',
+      track: 'Von dutch',
+    })
+  })
+
+  it('only splits on the first separator, in case a name contains " :: "', () => {
+    const key = toTrackKey('Artist', 'Track :: With Colons')
+    expect(parseTrackKey(key)).toEqual({
+      artist: 'Artist',
+      track: 'Track :: With Colons',
+    })
+  })
+})
 
 describe('toPlaycountMap', () => {
   it('keys items by keyFn and coerces playcount to a number', () => {

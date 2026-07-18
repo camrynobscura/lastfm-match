@@ -8,6 +8,23 @@ export function toPlaycountMap(items, keyFn) {
   }, {})
 }
 
+// the single source of truth for how a shared track's key is built and
+// taken apart -- keeps that in one place instead of every consumer
+// re-parsing the "Artist :: Track" string its own way
+const TRACK_KEY_SEPARATOR = ' :: '
+
+export function toTrackKey(artistName, trackName) {
+  return `${artistName}${TRACK_KEY_SEPARATOR}${trackName}`
+}
+
+export function parseTrackKey(key) {
+  const i = key.indexOf(TRACK_KEY_SEPARATOR)
+  return {
+    artist: key.slice(0, i),
+    track: key.slice(i + TRACK_KEY_SEPARATOR.length),
+  }
+}
+
 // a and b are { key: playcount } maps for the same kind of item (both
 // artists, or both tracks). returns a "boost" score: for every shared
 // item, the smaller of the two people's share of their own total

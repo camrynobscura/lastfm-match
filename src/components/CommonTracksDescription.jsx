@@ -1,27 +1,28 @@
 import React from 'react'
+import { parseTrackKey } from '../lib/compatibility'
 
-const CommonTracksDescription = ({tracks}) => {
-  let filteredTracks = tracks.map((track) => {
-    return track.split(' :: ')
-  })
+const CommonTracksDescription = ({ tracks }) => {
+  const parsedTracks = tracks.map(parseTrackKey)
 
   return (
     <div>
       <p>
         {' '}
         You both love <span className='highlight-word'>tracks</span> like{' '}
-        {filteredTracks.map((track, i) => (
-          <React.Fragment key={track.join(' :: ')}>
-            {i === tracks.length - 1 ? (
+        {parsedTracks.map(({ artist, track }, i) => (
+          <React.Fragment key={tracks[i]}>
+            {i === parsedTracks.length - 1 ? (
               <>
                 and{' '}
                 <span className='bold'>
-                  {track[1]} <span style={{fontWeight:'normal'}}>by</span> {track[0]}.
+                  {track} <span style={{ fontWeight: 'normal' }}>by</span>{' '}
+                  {artist}.
                 </span>
               </>
             ) : (
               <span className='bold'>
-                {track[1]} <span style={{fontWeight:'normal'}}>by</span> {track[0]},{' '}
+                {track} <span style={{ fontWeight: 'normal' }}>by</span>{' '}
+                {artist},{' '}
               </span>
             )}
           </React.Fragment>
