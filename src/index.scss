@@ -21,7 +21,7 @@ $orange: #ff4b32;
 $electric-blue: #0075ff;
 $soft-blue: #bedcff;
 $soft-white: #eeeeee;
-$highlight: rgb(239, 129, 74);
+$highlight: #ffb587;
 $form-field: #e3effc;
 
 // condensed display face; SUSE Mono (set on :root below) stays the
@@ -86,7 +86,7 @@ body {
 }
 
 ::selection {
-  background: $soft-blue;
+  background: $highlight;
   color: $ink;
 }
 
