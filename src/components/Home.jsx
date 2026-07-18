@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getTopArtists, getTopTracks } from '../services/api'
+import { useMatchComparison } from '../hooks/useMatchComparison'
 import DownArrow from './DownArrow'
 import ErrorMessage from './ErrorMessage'
 import MatchDescription from './MatchDescription'
@@ -10,33 +11,6 @@ const exampleUsernameTwo = import.meta.env.VITE_USERNAME_TWO
 // only one ErrorMessage is ever rendered, so a static id is fine -- lets
 // the invalid username field(s) point at it via aria-describedby
 const ERROR_ID = 'match-error'
-
-// Last.fm error codes we want friendlier copy for; any other code falls
-// back to Last.fm's own message text
-const LASTFM_ERROR_MESSAGES = {
-  10: "There's a problem with this app's Last.fm API key.",
-  11: "Last.fm's service is temporarily offline. Try again in a bit.",
-  16: 'Last.fm had a temporary hiccup processing that. Try again.',
-  29: 'Last.fm is rate-limiting requests right now. Wait a moment and try again.',
-}
-
-// data is one user's {artists, tracks} api results -- returns a friendly
-// error naming that user, or null if neither call errored
-function describeUserError(data, username) {
-  const failed = data.artists.error
-    ? data.artists
-    : data.tracks.error
-      ? data.tracks
-      : null
-  if (!failed) return null
-  if (failed.error === 6) {
-    return { code: 6, text: `"${username}" wasn't found on Last.fm.` }
-  }
-  return {
-    code: failed.error,
-    text: LASTFM_ERROR_MESSAGES[failed.error] || failed.message,
-  }
-}
 
 const Home = () => {
   // the score/description section -- what we scroll into view once
@@ -54,49 +28,64 @@ const Home = () => {
   let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
 
   let [timePeriod, setTimePeriod] = useState('1month')
-  let [matchingArtists, setMatchingArtists] = useState([])
-  let [matchingTracks, setMatchingTracks] = useState([])
-  let [compatibilityScore, setCompatibilityScore] = useState(0)
 
   // data from api
   let [usernameOneData, setUsernameOneData] = useState()
   let [usernameTwoData, setUsernameTwoData] = useState()
 
-  // component status data
-  const [error, setError] = useState(null)
+  // errors set directly by handleSubmit (empty fields, network/generic
+  // failures) -- not derivable from usernameOneData/usernameTwoData, so
+  // these stay as real state. "user not found" errors, by contrast, are
+  // derived from the fetched data and come from useMatchComparison below.
+  const [submitError, setSubmitError] = useState(null)
+  const [submitInvalidField, setSubmitInvalidField] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+
+  const {
+    score: compatibilityScore,
+    sharedArtists: matchingArtists,
+    sharedTracks: matchingTracks,
+    error: derivedError,
+    invalidField: derivedInvalidField,
+  } = useMatchComparison(
+    usernameOneData,
+    usernameTwoData,
+    staticUsernameOne,
+    staticUsernameTwo,
+  )
+
+  // a submit-time error (empty field, network failure) takes precedence;
+  // otherwise fall back to whatever the fetched data itself says
+  const error = submitError || derivedError
   // which username field(s) the current error is about ('one' | 'two' |
   // 'both' | null) -- drives aria-invalid/aria-describedby on the inputs.
   // null means the error isn't about a specific field (e.g. a network
   // failure), so neither input gets marked invalid.
-  const [invalidField, setInvalidField] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const invalidField = submitInvalidField || derivedInvalidField
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError(null)
-    setInvalidField(null)
+    setSubmitError(null)
+    setSubmitInvalidField(null)
     setHasSubmitted(false)
-    setCompatibilityScore(0)
-    setMatchingArtists([])
-    setMatchingTracks([])
 
     const trimmedOne = usernameOne.trim()
     const trimmedTwo = usernameTwo.trim()
 
     if (!trimmedOne && !trimmedTwo) {
-      setError('Enter a username for both listeners.')
-      setInvalidField('both')
+      setSubmitError('Enter a username for both listeners.')
+      setSubmitInvalidField('both')
       return
     }
     if (!trimmedOne) {
-      setError('Enter a username for listener one.')
-      setInvalidField('one')
+      setSubmitError('Enter a username for listener one.')
+      setSubmitInvalidField('one')
       return
     }
     if (!trimmedTwo) {
-      setError('Enter a username for listener two.')
-      setInvalidField('two')
+      setSubmitError('Enter a username for listener two.')
+      setSubmitInvalidField('two')
       return
     }
 
@@ -124,7 +113,7 @@ const Home = () => {
     } catch (err) {
       // fetch itself throws TypeError for network-level failures (offline,
       // DNS, CORS); anything else (bad JSON, etc) is a more generic failure
-      setError(
+      setSubmitError(
         err instanceof TypeError
           ? 'Could not reach Last.fm — check your connection and try again.'
           : 'Something went wrong. Please try again.',
@@ -134,113 +123,6 @@ const Home = () => {
       setHasSubmitted(true)
     }
   }
-
-  useEffect(() => {
-    if (usernameOneData && usernameTwoData) {
-      const errorOne = describeUserError(usernameOneData, staticUsernameOne)
-      const errorTwo = describeUserError(usernameTwoData, staticUsernameTwo)
-
-      if (errorOne || errorTwo) {
-        setInvalidField(errorOne && errorTwo ? 'both' : errorOne ? 'one' : 'two')
-        if (errorOne?.code === 6 && errorTwo?.code === 6) {
-          setError(
-            `Neither "${staticUsernameOne}" nor "${staticUsernameTwo}" were found on Last.fm.`,
-          )
-        } else {
-          setError(
-            [errorOne, errorTwo]
-              .filter(Boolean)
-              .map((e) => e.text)
-              .join(' '),
-          )
-        }
-      } else {
-        // find matching artists
-        let currentUserOneTopArtists =
-          usernameOneData.artists.topartists.artist.reduce((acc, obj) => {
-            acc[obj.name] = Number(obj.playcount)
-            return acc
-          }, {})
-
-        let currentUserTwoTopArtists =
-          usernameTwoData.artists.topartists.artist.reduce((acc, obj) => {
-            acc[obj.name] = Number(obj.playcount)
-            return acc
-          }, {})
-
-        let currentUserOneTopTracks =
-          usernameOneData.tracks.toptracks.track.reduce((acc, obj) => {
-            acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
-            return acc
-          }, {})
-
-        let currentUserTwoTopTracks =
-          usernameTwoData.tracks.toptracks.track.reduce((acc, obj) => {
-            acc[obj.artist.name + ' :: ' + obj.name] = Number(obj.playcount)
-            return acc
-          }, {})
-
-        function musicCompatibility(artists_a, artists_b, tracks_a, tracks_b) {
-          const artistScore = getScore(artists_a, artists_b)
-          const trackScore = getScore(tracks_a, tracks_b)
-
-          const combined = artistScore * 0.6 + trackScore * 0.4
-          // artists weighted more heavily because track overlap is rarer
-
-          return {
-            // fourth root stretches low raw overlap scores into a friendlier 0-100 range
-            score: Math.round(Math.pow(combined, 1 / 4) * 100),
-            sharedArtists: getShared(artists_a, artists_b),
-            sharedTracks: getShared(tracks_a, tracks_b),
-          }
-        }
-
-        function getScore(a, b) {
-          const setA = new Set(Object.keys(a))
-          const setB = new Set(Object.keys(b))
-          const shared = [...setA].filter((k) => setB.has(k))
-
-          const totalA = Object.values(a).reduce((s, v) => s + v, 0)
-          const totalB = Object.values(b).reduce((s, v) => s + v, 0)
-
-          let boost = 0
-          for (const item of shared) {
-            boost += Math.min(a[item] / totalA, b[item] / totalB)
-          }
-
-          return boost
-          // just using boost, no jaccard, so scores aren't dragged down
-        }
-
-        function getShared(a, b) {
-          const setB = new Set(Object.keys(b))
-          const totalA = Object.values(a).reduce((s, v) => s + v, 0)
-          const totalB = Object.values(b).reduce((s, v) => s + v, 0)
-          return Object.keys(a)
-            .filter((k) => setB.has(k))
-            .map((k) => ({ key: k, playcountOne: a[k], playcountTwo: b[k] }))
-            .sort(
-              (x, y) =>
-                y.playcountOne / totalA +
-                y.playcountTwo / totalB -
-                (x.playcountOne / totalA + x.playcountTwo / totalB),
-            )
-          // ranked by combined share of each person's listening, so one
-          // heavy listener's raw counts can't dominate the order
-        }
-
-        const result = musicCompatibility(
-          currentUserOneTopArtists,
-          currentUserTwoTopArtists,
-          currentUserOneTopTracks,
-          currentUserTwoTopTracks,
-        )
-        setMatchingTracks(result.sharedTracks)
-        setMatchingArtists(result.sharedArtists)
-        setCompatibilityScore(result.score)
-      }
-    }
-  }, [usernameOneData, usernameTwoData, staticUsernameOne, staticUsernameTwo])
 
   // nudge the loading box into view the moment loading starts, so the
   // equalizer bars are visible right away. goes a bit past just bringing
@@ -275,10 +157,9 @@ const Home = () => {
   // top edge sits right at the bottom of the viewport -- the results card
   // is fully visible, with the next section peeking in right at the fold.
   //
-  // matchingArtists is in the deps because it lands in a separate render
-  // from hasSubmitted/isLoading (a different effect sets it once the api
-  // data is processed) -- this re-fires once that catches up and the
-  // shared-artists panel actually exists to scroll to.
+  // matchingArtists/matchingTracks are in the deps so this re-fires if a
+  // resubmit changes the shared lists without changing hasSubmitted/
+  // isLoading/error (e.g. two searches in a row that both succeed).
   useEffect(() => {
     if (hasSubmitted && !isLoading && !error) {
       const el = sharedArtistsRef.current
