@@ -32,9 +32,9 @@ const ScoreDisplay = ({ score }) => {
     <div className='score-display'>
       <div className='score-ring'>
         <svg viewBox='0 0 190 190' aria-hidden='true'>
-          <circle className='ring-track' cx='95' cy='95' r='92' />
+          <circle className='score-ring-track' cx='95' cy='95' r='92' />
           <circle
-            className='ring-progress'
+            className='score-ring-progress'
             cx='95'
             cy='95'
             r={RADIUS}

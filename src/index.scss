@@ -1,29 +1,54 @@
-@import url('https://fonts.googleapis.com/css2?family=Modak&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap');
-@import './reset.css';
+@use './reset.css';
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Modak&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
-$main-color: #1f308dff;
-$main-accent-color: rgba(217, 241, 236, 1);
-$secondary-color: rgb(172, 196, 221);
-$secondary-color-opaque: rgba(223, 223, 181, 0.5);
-// $tertiary-color: rgba(203, 42, 235, 1);
-$tertiary-color: rgb(15, 156, 235);
-// rgb(201, 255, 243)
-// rgb(15, 156, 235)
+// ============================================================
+// Variables
+// ============================================================
 
-* {
-  // border: 1px solid red;
+// leftover from the original mockup palette. $ring-text-color and
+// $focus-color are named for their one job each (the score ring's text,
+// the focus-ring border); $light-blue is named for its hue since it
+// does double duty -- it's both the page background and a light
+// text/border color used throughout the dark match-table panel
+$ring-text-color: rgba(217, 241, 236, 1);
+$light-blue: rgb(172, 196, 221);
+$focus-color: rgb(14, 143, 217);
+
+// candy accents carried over from the Page Break mockup redesign
+$accent-yellow: #f0ff42;
+$ink: #141218;
+$orange: #ff4b32;
+$electric-blue: #0075ff;
+$soft-white: #eeeeee;
+
+// condensed display face; SUSE Mono (set on :root below) stays the
+// body/UI font
+$display-font: 'Barlow Condensed', sans-serif;
+
+// ============================================================
+// Base / reset overrides
+// ============================================================
+
+// visible to screen readers only; gives inputs an accessible name
+// without changing the visual layout
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 :root {
-  font-family:  "SUSE Mono", Avenir, Helvetica, Arial, sans-serif;
-  // font-kerning: 1.5;
-  // letter-spacing: 3.5;
+  font-family: 'SUSE Mono', Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
+  font-size: 16px;
   color-scheme: light dark;
-
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -33,9 +58,10 @@ $tertiary-color: rgb(15, 156, 235);
 button,
 input,
 select,
-textarea {
+textarea,
+p {
   font-family: inherit;
-  font-size: 100%;
+  font-size: 1rem;
 }
 
 a {
@@ -45,69 +71,85 @@ a {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  place-items: start;
   min-width: 320px;
   min-height: 100vh;
-    color: $main-color;
-  background-color: $secondary-color;
+  color: $ink;
+  background-color: $light-blue;
+  // the shared-list panels break out to full viewport width below;
+  // this guards against the 100vw/scrollbar sliver that can cause
+  // a horizontal scroll in some browsers
+  overflow-x: hidden;
 }
+
+::selection {
+  background: $accent-yellow;
+  color: $ink;
+}
+
+// ============================================================
+// Page shell
+// ============================================================
 
 #root {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 20px;
   text-align: center;
 }
 
-
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: start;
-  min-width: 320px;
-  min-height: 100vh;
-  padding: 60px 0;
-  // font-size: 12px;
-}
-
 h1 {
-  font-size: 6rem;
-  line-height: 1.1;
+  font-family: $display-font;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(2.9rem, 8vw, 5rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
   margin: 0;
   padding: 0;
-  font-family: Modak;
-  text-decoration: underline;
-  text-decoration-color: $tertiary-color;
-  text-decoration-thickness: 16px;
-  text-underline-offset: 12px;
-  text-decoration-style: dotted;
+  // text-decoration: underline;
+  text-decoration-color: $orange;
+  text-decoration-thickness: 8px;
+  text-underline-offset: 10px;
+  // text-decoration-style: dotted;
+
+  .dot {
+    color: $orange;
+  }
 }
 
 .head {
-  padding-bottom: 36px;
+  padding-top: 38px;
+  padding-bottom: 52px;
   .app-description {
-    max-width: 400px;
-    margin: 24px auto 0px;
-    // margin: 0 auto;
+    max-width: 430px;
+    margin: 22px auto 0px;
+    font-size: 0.95rem;
   }
 }
 
 .content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  column-gap: 20px;
-  row-gap: 20px;
-  // border: 1px solid green;
-  div {
-    border-radius: 8px;
-  }
+  // single centered column: form card, then result row, then the two
+  // shared-list panels stacked full width. no gap here -- the two
+  // shared-list panels need to sit flush against each other, so
+  // spacing above them lives on .form / .match-description instead
+  display: flex;
+  flex-direction: column;
 }
 
+// ============================================================
+// Form
+// ============================================================
+
 .form {
-  // min-height: 300px;
-  background-color: $main-color;
+  background-color: $soft-white;
+  border: 2px solid $ink;
+  border-radius: 0;
+  box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto 40px;
 }
 
 .form-content {
@@ -115,37 +157,80 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 500px;
-  padding: 36px 0;
+  padding: 22px;
 
   select {
     appearance: none;
     background-color: transparent;
     border: none;
-    padding: 0 1em 0 0;
+    // the wrapper's :focus-within border is our custom focus indicator --
+    // without this, the browser's own native focus outline still draws
+    // too, tightly hugging the select's internal content box instead of
+    // our stretched one, showing up as a second border-within-a-border
+    outline: none;
+    // horizontal padding lives here (not on the .select wrapper) for the
+    // same reason height does: padding on the wrapper leaves a strip on
+    // each side that's outside the <select>'s own box, so clicking there
+    // misses it. right side reserves room for the caret.
+    padding: 0 calc(1.4em + 16px) 0 16px;
     margin: 0;
     width: 100%;
-    font-family: inherit;
-    font-size: inherit;
+    font-family: $display-font;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    font-size: 1rem;
     cursor: inherit;
     line-height: inherit;
-    color: $secondary-color;
+    color: $ink;
   }
 
+  // the period select
   .select {
     cursor: pointer;
     display: grid;
     grid-template-areas: 'select';
-    align-items: center;
-    position: relative;
+    // stretch (not center) so the <select> itself fills the whole padded
+    // button -- otherwise it only claims its own text-line height, leaving
+    // the visible padding above/below unclickable dead space. the caret
+    // (::after) re-centers itself independently below.
+    align-items: stretch;
+    box-sizing: border-box;
+    margin: 0;
+    // an explicit height (not vertical padding) is what makes stretch
+    // above actually work -- .select's height was previously implicit
+    // (auto, driven by the select's own content size), and stretching a
+    // grid item into an auto-sized track that only exists *because of*
+    // that item's own size is circular and does nothing. 50px matches
+    // .input-wrap's total height (its own 11px padding + 2px border +
+    // content line)
+    height: 50px;
+    padding: 0;
+    border: 2px solid $ink;
+    border-radius: 0;
+    // same background as the listener one/two fields
+    background-color: rgba($electric-blue, 0.1);
+    color: $ink;
+
+    // focus ring lives on the wrapper itself (no extra overlay element to
+    // fight with pointer-events) -- :focus-within matches whenever the
+    // <select> inside has focus
+    &:focus-within {
+      border-color: $focus-color;
+    }
   }
   .select::after {
     content: '';
     width: 0.8em;
     height: 0.5em;
-    background-color: $secondary-color;
+    // same light blue as the @ symbol in the listener fields
+    background-color: $electric-blue;
     clip-path: polygon(100% 0%, 0 0%, 50% 100%);
     justify-self: end;
+    // .select is now align-items: stretch, so re-center the caret itself
+    align-self: center;
+    // .select's own padding is 0 now (moved onto <select>), so this
+    // restores the caret's original 16px inset from the wrapper's border
+    margin-right: 16px;
   }
 
   select,
@@ -153,93 +238,279 @@ h1 {
     grid-area: select;
   }
 
-  select:focus + .focus {
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    border: 2px solid $main-color;
-    border-radius: inherit;
+  // listener one / listener two sit side by side, with the × between them
+  .field-row {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+    align-items: end;
+    width: 100%;
   }
 
-  input,
-  .select {
-    border-radius: 0;
-    box-sizing: border-box;
-    width: 200px;
-    margin: 10px 0;
-    padding: 10px;
-    border: 2px solid $secondary-color;
-    background-color: $main-color;
+  .vs-x {
+    // hidden in the stacked (column) layout -- it doesn't read well
+    // sitting between two full-width fields on mobile
+    display: none;
+    justify-self: center;
+    font-family: $display-font;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: $orange;
+    line-height: 1;
+    padding-bottom: 6px;
+  }
 
-    // &::placeholder {
-    //   color: var(--secondary-color-opaque);
-    // }
-    // &::picker(select) {
-    //   appearance: base-select;
-    // }
+  .field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0;
+  }
+
+  .field-label {
+    font-family: $display-font;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    color: $ink;
+    margin-bottom: 6px;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 11px 14px;
+    // black border instead of navy, matching the mockup
+    border: 2px solid $ink;
+    border-radius: 0;
+    background-color: rgba($electric-blue, 0.1);
+
+    .at {
+      color: $electric-blue;
+      font-weight: 700;
+      flex: none;
+    }
+  }
+
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    color: $ink;
+    font-weight: 600;
+    // .input-wrap:focus-within already draws the focus indicator (border
+    // color swap) -- without this, the browser's own native focus ring
+    // would also draw, inside that border
+    outline: none;
+
+    &::placeholder {
+      // 0.55 measured at 3.80:1 against the tinted input background --
+      // below the 4.5:1 WCAG 1.4.3 minimum for text. 0.65 clears it
+      // (~5.18:1) with a bit of margin for cross-browser rendering.
+      color: rgba($ink, 0.65);
+    }
+  }
+
+  .input-wrap:focus-within {
+    // swap the border color itself instead of layering a separate outline
+    // on top of the permanent black border -- same fix as .select below,
+    // avoids showing both colors as a border-within-a-border
+    border-color: $focus-color;
+  }
+
+  // date range sits left, the button sits right, on the same row
+  .form-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin-top: 18px;
+  }
+
+  .date-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   button {
-    font-family: Modak;
+    font-family: $display-font;
     text-transform: uppercase;
-    font-weight: bold;
-    font-size: 2.8em;
+    font-weight: 700;
+    font-size: 1.35rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     box-sizing: border-box;
-    width: 200px;
-    margin: 10px 0;
-    padding: 10px 10px 4px 10px;
-    border: none;
-    color: $main-accent-color;
-    border-radius: 8px;
-    // border: 2px solid var(--secondary-color);
-    background-color: $tertiary-color;
+    padding: 10px 28px;
+    // black fill + border + hard drop shadow, matching the mockup's button
+    border: 2px solid $ink;
+    color: $soft-white;
+    border-radius: 999px;
+    background-color: $ink;
+    transition:
+      transform 0.12s ease,
+      background-color 0.12s ease,
+      border-color 0.12s ease;
+
+    .arrow {
+      transition: transform 0.12s ease;
+    }
 
     &:hover {
-      background-color: rgba(41, 170, 245, 1);
+      background-color: $orange;
+      border-color: $orange;
+      transform: translateY(-2px);
+
+      .arrow {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  // consolidated -- padding, the listener row going from stacked to
+  // side-by-side, and the × separator all change together at this
+  // breakpoint (previously three separate @media blocks)
+  @media (min-width: 560px) {
+    padding: 22px 28px;
+
+    .field-row {
+      grid-template-columns: 1fr auto 1fr;
+    }
+
+    .vs-x {
+      display: block;
     }
   }
 }
 
+// ============================================================
+// Results / score
+// ============================================================
+
 .match-description {
-  min-height: 100%;
-  border: 3px solid $main-color;
-  padding: 24px 14px;
+  // same width as .form -- width: 100% (not just max-width) so this box
+  // doesn't shrink-wrap to whatever's inside it: the equalizer during
+  // loading is much narrower than the score ring + copy once results
+  // land, and without a forced width the box itself would resize
+  // between the two, not just its .match-results child
+  max-width: 640px;
+  width: 100%;
+  margin: 30px auto 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 
-  .match-description-head {
-    margin-bottom: 20px;
+  // idle, pre-submit: nothing renders inside, so collapse the padding
+  // instead of reserving empty space for it
+  &.is-empty {
+    padding: 0;
+    margin: 0;
+  }
+
+  .names-caption {
+    margin: 0 0 16px;
+    font-family: $display-font;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1;
+    // usernames render exactly as entered, not forced to caps
+  }
+
+  .pairing-x {
+    color: $orange;
+    margin: 0 8px;
+  }
+}
+
+// result: score ring on the left, pairing + descriptions on the right
+.match-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  text-align: left;
+  border: 2px solid $ink;
+  box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  padding: 30px;
+  background-color: $soft-white;
+  // same width as .form, so the box doesn't visibly resize between the
+  // loading state (just the equalizer) and the results state (ring +
+  // copy) -- min-height covers the same gap vertically, roughly matching
+  // the score ring's own footprint (180px ring + margin + padding)
+  width: 100%;
+  min-height: 240px;
+
+  .compatibility-percentage {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    flex: none;
+  }
+
+  .match-copy {
+    max-width: 56ch;
+  }
+
+  .match-lists {
+    display: grid;
+    gap: 12px;
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+    }
+  }
+
+  // entrance animation for each piece, once results land
+  .names-caption,
+  .compatibility-percentage,
+  .match-lists {
+    // backwards fill keeps delayed items invisible until their turn
+    animation: rise-in 0.4s ease-out backwards;
+  }
+  .compatibility-percentage {
+    animation-delay: 0.12s;
+  }
+  .match-lists {
+    animation-delay: 0.24s;
+  }
+
+  @media (min-width: 760px) {
+    flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 16px;
-
-    .compatability-percentage {
-      display: flex;
-      justify-content: center;
-    }
-
-    .names-caption {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
+    gap: 46px;
   }
-  .artists-description {
-    padding-bottom: 20px;
-  }
+}
 
-  .empty-state {
-    max-width: 200px;
-    opacity: 0.6;
+// its own box, separate from .match-results -- sized to its (short) content
+// instead of inheriting the results card's width/min-height
+.match-error {
+  max-width: 640px;
+  margin: 0 auto 30px;
+  padding: 16px 20px;
+  border: 2px solid $orange;
+  background-color: rgba($orange, 0.16);
+  text-align: left;
+
+  p {
+    margin: 0;
+    font-weight: 600;
   }
 }
 
@@ -248,9 +519,13 @@ h1 {
 }
 
 .highlight-word {
-  color: $tertiary-color;
-  font-weight: bold;
+  background: $accent-yellow;
+  color: $ink;
+  font-family: $display-font;
+  font-weight: 700;
   text-transform: uppercase;
+  padding: 0 0.28em;
+  letter-spacing: 0.02em;
 }
 
 .score-display {
@@ -262,8 +537,8 @@ h1 {
 
   .score-ring {
     position: relative;
-    width: 170px;
-    height: 170px;
+    width: 180px;
+    height: 180px;
 
     svg {
       width: 100%;
@@ -273,13 +548,13 @@ h1 {
     }
   }
 
-  .ring-track {
-    fill: $main-color;
+  .score-ring-track {
+    fill: $ink;
   }
 
-  .ring-progress {
+  .score-ring-progress {
     fill: none;
-    stroke: $tertiary-color;
+    stroke: $orange;
     stroke-width: 8;
     stroke-linecap: round;
   }
@@ -291,7 +566,7 @@ h1 {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: $main-accent-color;
+    color: $ring-text-color;
 
     .score-number {
       font-weight: bold;
@@ -310,74 +585,453 @@ h1 {
     }
 
     .score-caption {
-      color: $secondary-color;
+      color: $light-blue;
       font-size: 0.9rem;
     }
   }
-
 }
+
+// ============================================================
+// Down-arrow connector
+// ============================================================
+
+// connector between two stacked sections -- points at whatever just
+// appeared below it (loading bars/results/error, or the shared-list
+// panels), same clip-path-triangle technique as the select's caret
+.down-arrow-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+// each variant centers the arrow within its own specific gap -- the boxes
+// above/below use different padding/margin models (.match-description
+// wraps its visible card in its own padding; .shared-list-panel doesn't),
+// so one fixed margin can't center both placements
+.down-arrow-wrap--to-results {
+  // above: .form's 30px margin. below: .match-description's 24px
+  // padding-top (it has no margin-top of its own)
+  margin: 12px 0 18px;
+}
+
+.down-arrow-wrap--to-secondary {
+  // above: .match-description's 24px padding-bottom + 30px margin-bottom.
+  // below: .shared-list-panel has no top margin/padding of its own
+  margin: 10px 0 40px;
+}
+
+.down-arrow {
+  width: 26px;
+  height: 16px;
+  background-color: $orange;
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+}
+
+.down-arrow--animated {
+  animation: arrow-bounce 1.4s ease-in-out infinite;
+}
+
+// ============================================================
+// Shared-list table (secondary results)
+// ============================================================
+
+.shared-list-panel {
+  // full-bleed: break out of #root's max-width + padding so the panel's
+  // background/border reach the actual left/right edges of the viewport
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+
+  // joins the results cascade, after .match-lists
+  animation: rise-in 0.4s ease-out backwards;
+  animation-delay: 0.36s;
+
+  // the tracks table follows the artists table into view, flush against
+  // it -- no gap between the two panels
+  & + & {
+    animation-delay: 0.44s;
+
+    // thin orange seam, scoped to the inner content column (not the full
+    // 100vw bleed of .shared-list-panel itself)
+    .match-table-lists {
+      border-top: 3px solid $orange;
+    }
+  }
+}
+
+// the bordered box holding each list; always visible, no top-level toggle
+.match-table {
+  border: 2px solid $ink;
+  border-radius: 0;
+  padding: 20px 22px 26px;
+
+  .match-table-lists {
+    text-align: left;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+  }
+
+  .shared-list-heading {
+    margin: 0;
+    font-family: $display-font;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    line-height: 0.95;
+    text-transform: uppercase;
+
+    .count {
+      font-weight: 400;
+      opacity: 0.55;
+    }
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .legend .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+  }
+
+  .swatch {
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid $ink;
+    border-radius: 3px;
+    display: inline-block;
+    flex: none;
+
+    &.one {
+      background: $electric-blue;
+    }
+    &.two {
+      background: $orange;
+    }
+  }
+
+  .rows {
+    display: grid;
+    gap: 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-top: 1.5px solid rgba($ink, 0.18);
+    align-items: center;
+
+    &:first-child {
+      border-top: none;
+    }
+
+    @media (min-width: 640px) {
+      grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: 0px;
+    }
+  }
+
+  .rank {
+    font-family: $display-font;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: rgba($ink, 0.4);
+  }
+
+  .row-name {
+    min-width: 0;
+  }
+
+  .row-name .primary {
+    font-family: $display-font;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1.4rem;
+    line-height: 1.05;
+    // long track + artist combos wrap to a second line instead of
+    // getting cut off at the row edge
+    overflow-wrap: anywhere;
+  }
+
+  .row-name .secondary {
+    display: block;
+    font-family: 'SUSE Mono', monospace;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: rgba($ink, 0.6);
+    margin-top: 3px;
+  }
+
+  .bars {
+    display: grid;
+    gap: 0px;
+  }
+
+  .bar-line {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  // named .bar-track (not just .track) to avoid reading like the domain
+  // noun "track" (a song) in the tracks panel -- this is the bar-chart
+  // groove behind .fill, unrelated to the shared-track data it displays
+  .bar-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba($ink, 0.08);
+    overflow: hidden;
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 999px;
+
+    &.one {
+      background: $electric-blue;
+    }
+    &.two {
+      background: $orange;
+    }
+  }
+
+  .plays {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'SUSE Mono', monospace;
+    font-weight: 600;
+    font-size: 0.8rem;
+    min-width: 46px;
+    color: $ink;
+  }
+
+  // named .plays-dot (not .dot) to avoid colliding with the unrelated .dot
+  // used for the h1 logo's punctuation mark. sits at the same nesting depth
+  // as .fill/.swatch (not inside .plays) so the dark-mode override below
+  // has matching specificity and can win it
+  .plays-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex: none;
+
+    &.one {
+      background: $electric-blue;
+    }
+    &.two {
+      background: $orange;
+    }
+  }
+
+  .see-more {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: $display-font;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 1rem;
+    cursor: pointer;
+    border: 2px solid $ink;
+    border-radius: 0;
+    padding: 9px 22px;
+    background: transparent;
+    color: $ink;
+    transition:
+      background 0.12s ease,
+      color 0.12s ease;
+
+    &:hover {
+      background: $ink;
+      color: $soft-white;
+    }
+  }
+}
+
+// the artists panel gets the dark (navy) treatment; the tracks panel
+// keeps the light look. added as a second class on .match-table
+.match-table--dark {
+  // black background, matching the mockup's dark section (not navy)
+  background: $ink;
+  color: $light-blue;
+  border-color: $ink;
+
+  .shared-list-heading {
+    color: $light-blue;
+  }
+
+  .swatch,
+  .fill,
+  .plays-dot {
+    &.one {
+      background: $accent-yellow;
+    }
+  }
+
+  .row {
+    border-top-color: rgba($soft-white, 0.18);
+  }
+
+  .rank {
+    color: rgba($soft-white, 0.4);
+  }
+
+  .row-name .secondary {
+    color: rgba($light-blue, 0.85);
+  }
+
+  .bar-track {
+    background: rgba($soft-white, 0.14);
+  }
+
+  .plays {
+    color: $light-blue;
+  }
+
+  .see-more {
+    border-color: $light-blue;
+    color: $light-blue;
+
+    &:hover {
+      background: $light-blue;
+      color: $ink;
+    }
+  }
+}
+
+// ============================================================
+// Loading indicator
+// ============================================================
 
 .loading-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 26px;
+  gap: 12px;
+
+  p {
+    max-width: 260px;
+    font-family: $display-font;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 1.1rem;
+  }
 
   .equalizer {
     display: flex;
     align-items: flex-end;
-    gap: 12px;
-    height: 94px;
+    gap: 14px;
+    // 12 blocks of 8px (one segment + one gap) -- a whole number of blocks,
+    // so every bar's rise/fall can land exactly on a block edge
+    height: 96px;
 
     span {
       box-sizing: border-box;
-      width: 20px;
+      width: 24px;
       height: 100%;
-      border-radius: 3px;
-      background-color: $main-color;
-      animation: equalize 1.1s ease-in-out infinite;
+      border-radius: 0;
+      // stacked LED-style segments instead of one solid fill
+      background-image: repeating-linear-gradient(
+        to top,
+        $orange 0px,
+        $orange 6px,
+        transparent 6px,
+        transparent 8px
+      );
+      animation-name: equalize;
+      animation-duration: 1.1s;
+      animation-iteration-count: infinite;
       // negative delays start every bar mid-wave, avoiding the
       // initial full-height freeze while positive delays elapse
       animation-delay: -1.1s;
+      // each bar's peak is a whole number of 8px blocks above the shared
+      // 24px (3-block) trough, and steps() is set to that same block
+      // count -- so every step is exactly one block (8px), never landing
+      // mid-block the way evenly-spaced steps over an arbitrary height
+      // range would
+      --peak: 64px;
+      animation-timing-function: steps(5);
     }
 
     span:nth-child(2) {
-      animation-delay: -0.92s;
+      animation-delay: -0.94s;
+      --peak: 96px;
+      animation-timing-function: steps(9);
     }
     span:nth-child(3) {
-      animation-delay: -0.74s;
+      animation-delay: -0.79s;
+      --peak: 48px;
+      animation-timing-function: steps(3);
     }
     span:nth-child(4) {
-      animation-delay: -0.56s;
+      animation-delay: -0.63s;
+      --peak: 80px;
+      animation-timing-function: steps(7);
     }
     span:nth-child(5) {
-      animation-delay: -0.38s;
+      animation-delay: -0.47s;
+      --peak: 56px;
+      animation-timing-function: steps(4);
+    }
+    span:nth-child(6) {
+      animation-delay: -0.31s;
+      --peak: 96px;
+      animation-timing-function: steps(9);
+    }
+    span:nth-child(7) {
+      animation-delay: -0.16s;
+      --peak: 72px;
+      animation-timing-function: steps(6);
     }
   }
 }
+
+// ============================================================
+// Animations
+// ============================================================
 
 @keyframes equalize {
   0%,
   100% {
-    height: 25%;
+    // 3 blocks (8px each) -- the shared trough every bar returns to
+    height: 24px;
   }
   50% {
-    height: 100%;
+    height: var(--peak, 96px);
   }
 }
 
-.match-results {
-  .names-caption,
-  .compatability-percentage,
-  .match-lists {
-    // backwards fill keeps delayed items invisible until their turn
-    animation: rise-in 0.4s ease-out backwards;
+@keyframes arrow-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
   }
-  .compatability-percentage {
-    animation-delay: 0.12s;
-  }
-  .match-lists {
-    animation-delay: 0.24s;
+  50% {
+    transform: translateY(6px);
   }
 }
 
@@ -392,13 +1046,23 @@ h1 {
   }
 }
 
+// ============================================================
+// Reduced motion
+// ============================================================
+
 @media (prefers-reduced-motion: reduce) {
   .loading-indicator .equalizer span {
     animation: none;
   }
   .match-results .names-caption,
-  .match-results .compatability-percentage,
+  .match-results .compatibility-percentage,
   .match-results .match-lists {
+    animation: none;
+  }
+  .shared-list-panel {
+    animation: none;
+  }
+  .down-arrow {
     animation: none;
   }
 }

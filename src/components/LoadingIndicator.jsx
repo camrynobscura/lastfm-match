@@ -1,14 +1,16 @@
 const LoadingIndicator = () => {
   return (
-    <div className='loading-indicator'>
-      <div className='equalizer' aria-label='Loading'>
+    <div className='loading-indicator' role='status'>
+      <div className='equalizer' aria-hidden='true'>
+        <span></span>
+        <span></span>
         <span></span>
         <span></span>
         <span></span>
         <span></span>
         <span></span>
       </div>
-      <p>finding your matches...</p>
+      <p>finding your compatibility score...</p>
     </div>
   )
 }

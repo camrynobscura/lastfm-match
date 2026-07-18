@@ -6,7 +6,7 @@ const CommonArtistsDescription = ({artists}) => {
       <p>
         You both love <span className='highlight-word'>artists</span> like{' '}
         {artists.map((artist, i) => (
-          <>
+          <React.Fragment key={artist}>
             {i === artists.length - 1 ? (
               <>
                 and <span className='bold'>{artist}.</span>
@@ -14,7 +14,7 @@ const CommonArtistsDescription = ({artists}) => {
             ) : (
               <span className='bold'>{artist}, </span>
             )}
-          </>
+          </React.Fragment>
         ))}
       </p>
     </div>
