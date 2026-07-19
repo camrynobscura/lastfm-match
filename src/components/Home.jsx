@@ -201,9 +201,12 @@ const Home = () => {
           Last<span className='dot'>.</span>fm Match
         </h1>
         <p className='app-description'>
-          Enter your last.fm username and a friend's to find your music
-          compatibility rating and see what artists and tracks you have in
-          common!
+          Enter two{' '}
+          <a href='https://www.last.fm' target='_blank' rel='noreferrer'>
+            Last.fm
+          </a>{' '}
+          usernames to discover their music compatibility, plus the artists
+          and tracks they have in common.
         </p>
       </header>
       <main className='content'>
