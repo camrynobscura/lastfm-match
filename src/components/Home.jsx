@@ -3,6 +3,7 @@ import { getTopArtists, getTopTracks } from '../services/api'
 import { useMatchComparison } from '../hooks/useMatchComparison'
 import DownArrow from './DownArrow'
 import ErrorMessage from './ErrorMessage'
+import Footer from './Footer'
 import MatchDescription from './MatchDescription'
 import MatchTable from './MatchTable'
 const exampleUsernameOne = import.meta.env.VITE_USERNAME_ONE
@@ -353,8 +354,10 @@ const Home = () => {
           staticUsernameOne={staticUsernameOne}
           staticUsernameTwo={staticUsernameTwo}
         />
-
       </main>
+      {/* only once full results have landed -- sits at the true bottom of
+      the page, so scrolling down to it is what reveals it */}
+      {hasSubmitted && !isLoading && !error && <Footer />}
     </>
   )
 }

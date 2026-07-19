@@ -958,6 +958,43 @@ h1 {
 }
 
 // ============================================================
+// Footer
+// ============================================================
+
+.site-footer {
+  // full-bleed, same trick as .shared-list-panel -- sits flush against the
+  // last shared-list panel above it, both at $ink, so the panel's own
+  // border blends away and the footer reads as a continuation of it
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: $ink;
+  color: $soft-blue;
+  padding: 18px 20px;
+  border-top: 1.5px solid rgba($soft-white, 0.18);
+
+  p {
+    margin: 0;
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  a {
+    color: $soft-blue;
+    text-decoration: underline;
+    text-decoration-color: $electric-blue;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: $orange;
+      text-decoration-color: $orange;
+    }
+  }
+}
+
+// ============================================================
 // Loading indicator
 // ============================================================
 
