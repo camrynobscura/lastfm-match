@@ -17,7 +17,7 @@ $orange: #ff4b32;
 $electric-blue: #0075ff;
 $soft-blue: #bedcff;
 $soft-white: #eeeeee;
-$highlight: rgb(255, 191, 151);
+$highlight: #73b4ff;
 $form-field: #e3effc;
 $ring-text-color: rgba(217, 241, 236, 1);
 
@@ -821,9 +821,33 @@ h1 {
 
   .bar-line {
     display: grid;
-    grid-template-columns: 1fr auto;
+    // username column shrinks to fit the longer username (set as
+    // --username-col-width on .rows, capped at 100px) -- the bar itself
+    // (1fr) and the play count (auto) take whatever's left
+    grid-template-columns: minmax(0, var(--username-col-width, 100px)) 1fr auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .bar-username {
+    font-family: 'SUSE Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba($ink, 0.55);
+    // mobile: left-aligned so the longer username sits flush against the
+    // row's left edge -- any slack from a shorter username (or from ch
+    // rounding) falls after the text instead, right before the bar
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @media (min-width: 640px) {
+      // desktop: bars sit in their own column already indented past
+      // rank+name, so right-aligning here keeps the username snug against
+      // the bar instead of against that column's own left edge
+      text-align: right;
+    }
   }
 
   // named .bar-track (not just .track) to avoid reading like the domain
@@ -859,24 +883,6 @@ h1 {
     font-size: 0.8rem;
     min-width: 46px;
     color: $ink;
-  }
-
-  // named .plays-dot (not .dot) to avoid colliding with the unrelated .dot
-  // used for the h1 logo's punctuation mark. sits at the same nesting depth
-  // as .fill/.swatch (not inside .plays) so the dark-mode override below
-  // has matching specificity and can win it
-  .plays-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    flex: none;
-
-    &.one {
-      background: $electric-blue;
-    }
-    &.two {
-      background: $orange;
-    }
   }
 
   .see-more {
@@ -919,8 +925,7 @@ h1 {
   }
 
   .swatch,
-  .fill,
-  .plays-dot {
+  .fill {
     &.one {
       background: $electric-blue;
     }
@@ -936,6 +941,10 @@ h1 {
 
   .row-name .secondary {
     color: rgba($soft-blue, 0.85);
+  }
+
+  .bar-username {
+    color: rgba($soft-blue, 0.7);
   }
 
   .bar-track {
