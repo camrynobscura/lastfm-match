@@ -57,13 +57,18 @@ const Home = () => {
   )
 
   // a submit-time error (empty field, network failure) takes precedence;
-  // otherwise fall back to whatever the fetched data itself says
-  const error = submitError || derivedError
+  // otherwise fall back to whatever the fetched data itself says. while a
+  // new search is in flight, hide any previous error immediately -- once
+  // staticUsernameOne/Two update to the new username, derivedError would
+  // otherwise briefly recombine the *previous* fetch's stale
+  // usernameOneData/usernameTwoData with the *new* username text, showing
+  // a stale error message before the new fetch has even resolved.
+  const error = isLoading ? null : submitError || derivedError
   // which username field(s) the current error is about ('one' | 'two' |
   // 'both' | null) -- drives aria-invalid/aria-describedby on the inputs.
   // null means the error isn't about a specific field (e.g. a network
   // failure), so neither input gets marked invalid.
-  const invalidField = submitInvalidField || derivedInvalidField
+  const invalidField = isLoading ? null : submitInvalidField || derivedInvalidField
 
   const handleSubmit = async (e) => {
     e.preventDefault()
