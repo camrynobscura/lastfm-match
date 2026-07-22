@@ -464,6 +464,7 @@ h1 {
   text-align: left;
   border: 2px solid $ink;
   box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  // padding: 30px;
   padding: 30px;
   background-color: $soft-white;
   // same width as .form, so the box doesn't visibly resize between the
@@ -628,13 +629,13 @@ h1 {
 .down-arrow-wrap--to-results {
   // above: .form's 30px margin. below: .match-description's 24px
   // padding-top (it has no margin-top of its own)
-  margin: 12px 0 18px;
+  margin: 12px 0 14px;
 }
 
 .down-arrow-wrap--to-secondary {
   // above: .match-description's 24px padding-bottom + 30px margin-bottom.
   // below: .shared-list-panel has no top margin/padding of its own
-  margin: 10px 0 40px;
+  margin: 12px 0 44px;
 }
 
 .down-arrow {
@@ -781,7 +782,7 @@ h1 {
     // lines up with the title's first line, whether row-name is one line
     // (artists) or two (tracks, with the "by artist" subtitle below) --
     // centering against the full block height made it drift row to row
-    align-self: center;
+    align-self: flex-start;
     font-family: $display-font;
     font-weight: 700;
     font-size: 1.4rem;
@@ -791,7 +792,7 @@ h1 {
   .row-name {
     grid-area: name;
     min-width: 0;
-    align-self: center;
+    align-self: flex-start;
   }
 
   .row-name .primary {
@@ -1012,6 +1013,7 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  padding: 50px 0 16px 0;
 
   p {
     max-width: 260px;
