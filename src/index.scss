@@ -330,6 +330,21 @@ h1 {
       // (~5.18:1) with a bit of margin for cross-browser rendering.
       color: rgba($ink, 0.65);
     }
+
+    // Chromium browsers (Edge/Chrome) paint autofilled fields with their
+    // own gray background + white text, which clashes with the wrapper's
+    // $form-field blue showing through this transparent input. the
+    // background is drawn with an internal !important rule that
+    // background-color can't override -- a large inset box-shadow fills
+    // the box with our color instead, and -webkit-text-fill-color
+    // restores the text (autofill overrides `color`, not text-fill-color).
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 100px $form-field inset;
+      -webkit-text-fill-color: $ink;
+    }
   }
 
   .input-wrap:focus-within {
@@ -481,11 +496,28 @@ h1 {
   }
 
   .match-copy {
+    // min-width:0 lets this flex child shrink below its content's
+    // intrinsic width (flex children default to min-width:auto, which a
+    // long unbreakable artist/track/username string would otherwise blow
+    // out past the card edge). width:100% + box-sizing stops it from
+    // shrink-wrapping to the longest word in the mobile column layout
+    // (align-items:center gives it no width otherwise), giving
+    // overflow-wrap a boundary to break against. overflow-wrap is
+    // inherited, so breaking long strings here also covers .names-caption
+    // and the <p>s inside.
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
     max-width: 56ch;
   }
 
   .match-lists {
     display: grid;
+    // minmax(0, 1fr) caps the column at the container width -- grid items
+    // (the <p>s) default to min-width:auto and would otherwise let a long
+    // unbreakable artist/track name stretch the column past the card edge
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
 
     p {
@@ -629,13 +661,13 @@ h1 {
 .down-arrow-wrap--to-results {
   // above: .form's 30px margin. below: .match-description's 24px
   // padding-top (it has no margin-top of its own)
-  margin: 12px 0 14px;
+  margin: 14px 0 16px;
 }
 
 .down-arrow-wrap--to-secondary {
   // above: .match-description's 24px padding-bottom + 30px margin-bottom.
   // below: .shared-list-panel has no top margin/padding of its own
-  margin: 12px 0 44px;
+  margin: 14px 0 46px;
 }
 
 .down-arrow {
@@ -647,6 +679,14 @@ h1 {
 
 .down-arrow--animated {
   animation: arrow-bounce 1.4s ease-in-out infinite;
+}
+
+// the to-secondary arrow settles after a few bounces instead of animating
+// forever -- overrides the infinite loop above just for this one variant
+// (the to-results arrow above it should keep looping for as long as
+// isLoading actually takes, however long that is)
+.down-arrow-wrap--to-secondary .down-arrow--animated {
+  animation-iteration-count: 3;
 }
 
 // ============================================================
@@ -672,7 +712,7 @@ h1 {
     // thin orange seam, scoped to the inner content column (not the full
     // 100vw bleed of .shared-list-panel itself)
     .match-table-lists {
-      border-top: 2px solid rgba($soft-blue, 1);
+      border-top: 2px solid rgba($electric-blue, .5);
     }
   }
 }
@@ -756,9 +796,12 @@ h1 {
     // rank + name share a row, bars get the row below -- same idea as the
     // desktop layout, just with bars wrapped down instead of a third column
     grid-template-columns: auto 1fr;
+    // bars drop under the name (rank cell left empty) so they sit indented
+    // beneath the track they describe, aligned to the name's left edge --
+    // rather than spanning full width back under the rank number
     grid-template-areas:
       'rank name'
-      'bars bars';
+      '.    bars';
     column-gap: 10px;
     row-gap: 8px;
     padding: 12px 0;
@@ -786,6 +829,11 @@ h1 {
     font-family: $display-font;
     font-weight: 700;
     font-size: 1.4rem;
+    // match .row-name .primary's line-height so the rank's glyphs sit at
+    // the same height as the name's -- both are flex-start, but a taller
+    // inherited line-height (1.5) would pad more space above the digits
+    // and make the rank drift lower than the name beside it
+    line-height: 1.2;
     color: rgba($ink, 0.4);
   }
 
@@ -793,6 +841,12 @@ h1 {
     grid-area: name;
     min-width: 0;
     align-self: flex-start;
+
+    @media (min-width: 640px) {
+      // bars sit in the very next column with no gap on desktop -- a bit of
+      // right padding keeps the name off the bar usernames
+      padding-right: 16px;
+    }
   }
 
   .row-name .primary {
@@ -800,6 +854,9 @@ h1 {
     font-weight: 700;
     text-transform: uppercase;
     font-size: 1.4rem;
+    // tighter leading so a name that wraps to a second line stays visually
+    // grouped rather than looking double-spaced
+    line-height: 1.2;
     // long track + artist combos wrap to a second line instead of
     // getting cut off at the row edge
     overflow-wrap: anywhere;
@@ -812,12 +869,26 @@ h1 {
     font-size: 0.8rem;
     color: rgba($ink, 0.6);
     margin-top: 3px;
+
+    // "by" is a quiet connector, not part of the artist name -- dim it so
+    // the eye lands on the artist. (this "by" reads visibly now instead of
+    // being screen-reader-only, to set the artist line apart from the bar
+    // usernames below it.)
+    .by-prefix {
+      opacity: 0.55;
+    }
   }
 
   .bars {
     grid-area: bars;
     display: grid;
     gap: 0px;
+
+    @media (min-width: 640px) {
+      // the row centers its cells; pin the bars to the top so they line up
+      // with the rank/name first line when a long name wraps to two rows
+      align-self: flex-start;
+    }
   }
 
   .bar-line {
@@ -882,7 +953,10 @@ h1 {
     font-family: 'SUSE Mono', monospace;
     font-weight: 600;
     font-size: 0.8rem;
-    min-width: 46px;
+    // sized (in MatchTable) to the widest count in the list, so the counts
+    // stay left-aligned with the widest one flush to the section's right
+    // edge -- rather than a fixed 46px that left a gap after short numbers
+    min-width: var(--plays-col-width, 46px);
     color: $ink;
   }
 
@@ -945,7 +1019,10 @@ h1 {
   }
 
   .bar-username {
-    color: rgba($soft-blue, 0.7);
+    // neutral grey instead of soft-blue so the usernames read as axis
+    // labels, distinct from the soft-blue artist name on the tracks rows
+    // right above them. ~6.7:1 on $ink, clears WCAG AA for small text.
+    color: #9aa0ad;
   }
 
   .bar-track {

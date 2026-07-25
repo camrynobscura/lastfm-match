@@ -19,7 +19,6 @@ Last.fm Match is a React + Vite single-page app that compares two Last.fm users'
 
 Requires a `.env` file (not committed) with:
 - `VITE_REACT_APP_LASTFM_API_KEY` — Last.fm API key, used in `src/services/api.js`.
-- `VITE_USERNAME_ONE` / `VITE_USERNAME_TWO` — default usernames pre-filled into the form in `src/components/Home.jsx`, useful for local dev so you don't retype usernames each reload.
 
 ## Architecture
 

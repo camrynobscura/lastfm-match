@@ -6,8 +6,6 @@ import ErrorMessage from './ErrorMessage'
 import Footer from './Footer'
 import MatchDescription from './MatchDescription'
 import MatchTable from './MatchTable'
-const exampleUsernameOne = import.meta.env.VITE_USERNAME_ONE
-const exampleUsernameTwo = import.meta.env.VITE_USERNAME_TWO
 
 // only one ErrorMessage is ever rendered, so a static id is fine -- lets
 // the invalid username field(s) point at it via aria-describedby
@@ -22,8 +20,8 @@ const Home = () => {
   const sharedArtistsRef = useRef(null)
 
   // data from form input
-  let [usernameOne, setUsernameOne] = useState(exampleUsernameOne)
-  let [usernameTwo, setUsernameTwo] = useState(exampleUsernameTwo)
+  let [usernameOne, setUsernameOne] = useState('')
+  let [usernameTwo, setUsernameTwo] = useState('')
 
   let [staticUsernameOne, setStaticUsernameOne] = useState('')
   let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
@@ -230,7 +228,6 @@ const Home = () => {
                   <input
                     id='username-one'
                     type='text'
-                    placeholder='Username 1'
                     className='search-input'
                     value={usernameOne}
                     onChange={(e) => setUsernameOne(e.target.value)}
@@ -260,7 +257,6 @@ const Home = () => {
                   <input
                     id='username-two'
                     type='text'
-                    placeholder='Username 2'
                     className='search-input'
                     value={usernameTwo}
                     onChange={(e) => setUsernameTwo(e.target.value)}
@@ -330,12 +326,13 @@ const Home = () => {
           scrollRef={error ? null : scoreRef}
         />
         {/* only when there's actually a shared-list panel below to point at
-        -- never animated */}
+        -- bounces 3 times (see .down-arrow-wrap--to-secondary in
+        index.scss) then settles, rather than animating forever */}
         {hasSubmitted &&
           !isLoading &&
           !error &&
           (matchingArtists.length > 0 || matchingTracks.length > 0) && (
-            <DownArrow variant='to-secondary' />
+            <DownArrow variant='to-secondary' animate />
           )}
         <MatchTable
           heading='shared artists'

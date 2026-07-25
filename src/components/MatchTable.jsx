@@ -9,6 +9,10 @@ const PAGE_SIZE = 10
 // username and the bar. measuring the actual rendered text via canvas gets
 // an exact pixel width instead of an approximation.
 const BAR_USERNAME_FONT = "600 11.2px 'SUSE Mono', monospace"
+// matches .plays's font (0.8rem * 16px root = 12.8px) -- used to size the
+// play-count column to the widest number so counts stay left-aligned in
+// one tidy column, flush to the section's right edge
+const PLAYS_FONT = "600 12.8px 'SUSE Mono', monospace"
 
 let measureCanvasContext
 function measureTextWidth(text, font) {
@@ -57,7 +61,7 @@ const SharedRow = ({
         </div>
         {artist && (
           <div className='secondary'>
-            <span className='sr-only'>by </span>
+            <span className='by-prefix'>by </span>
             {artist}
           </div>
         )}
@@ -119,6 +123,15 @@ const MatchTable = ({
     ),
   )}px`
 
+  // size the play-count column to the widest number in the whole list
+  // (max, already computed above for the bar scaling). the counts stay
+  // left-aligned, so the widest number sits flush to the section's right
+  // edge and shorter ones line up under it. Math.ceil so a fractional
+  // measurement never clips the final digit.
+  const playsColWidth = `${Math.ceil(
+    measureTextWidth(String(max), PLAYS_FONT),
+  )}px`
+
   return (
     <div className='shared-list-panel' ref={scrollRef}>
       <div className={dark ? 'match-table match-table--dark' : 'match-table'}>
@@ -141,7 +154,10 @@ const MatchTable = ({
             </div>
             <div
               className='rows'
-              style={{ '--username-col-width': usernameColWidth }}
+              style={{
+                '--username-col-width': usernameColWidth,
+                '--plays-col-width': playsColWidth,
+              }}
             >
               {visible.map((item, i) => {
                 const { artist, track } = isTracks
