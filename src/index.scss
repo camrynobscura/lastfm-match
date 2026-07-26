@@ -737,7 +737,10 @@ h1 {
     text-transform: uppercase;
 
     .count {
-      font-weight: 400;
+      // 500 is the lightest Barlow Condensed weight we load (see
+      // fonts.scss). asking for 400 rendered as 500 anyway, since
+      // font-synthesis: none rules out a faked lighter weight
+      font-weight: 500;
       opacity: 0.55;
     }
   }
