@@ -4,7 +4,7 @@ import {
   toPlaycountMap,
   toTrackKey,
 } from '../lib/compatibility'
-import { describeUserError } from '../lib/lastfmErrors'
+import { combineUserErrors, describeUserError } from '../lib/lastfmErrors'
 
 const EMPTY_RESULT = {
   score: 0,
@@ -37,13 +37,12 @@ export function useMatchComparison(
     if (errorOne || errorTwo) {
       const invalidField =
         errorOne && errorTwo ? 'both' : errorOne ? 'one' : 'two'
-      const error =
-        errorOne?.code === 6 && errorTwo?.code === 6
-          ? `Neither "${usernameOne}" nor "${usernameTwo}" were found on Last.fm.`
-          : [errorOne, errorTwo]
-              .filter(Boolean)
-              .map((e) => e.text)
-              .join(' ')
+      const error = combineUserErrors(
+        errorOne,
+        errorTwo,
+        usernameOne,
+        usernameTwo,
+      )
       return { ...EMPTY_RESULT, error, invalidField }
     }
 

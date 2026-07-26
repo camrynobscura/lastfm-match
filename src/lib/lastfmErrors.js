@@ -24,3 +24,21 @@ export function describeUserError(data, username) {
     text: LASTFM_ERROR_MESSAGES[failed.error] || failed.message,
   }
 }
+
+// combines both listeners' errors into the one line the error box shows.
+//
+// the dedupe matters more than it looks: a fault that isn't about either
+// username -- a suspended or invalid key, a rate limit, Last.fm being down
+// -- fails both requests with the same code, so joining the two texts
+// blindly printed the same sentence twice.
+export function combineUserErrors(errorOne, errorTwo, usernameOne, usernameTwo) {
+  if (!errorOne && !errorTwo) return null
+
+  // both names bad: one sentence naming both reads better than two
+  if (errorOne?.code === 6 && errorTwo?.code === 6) {
+    return `Neither "${usernameOne}" nor "${usernameTwo}" were found on Last.fm.`
+  }
+
+  const texts = [errorOne, errorTwo].filter(Boolean).map((e) => e.text)
+  return [...new Set(texts)].join(' ')
+}
