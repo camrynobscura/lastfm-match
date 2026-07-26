@@ -26,6 +26,35 @@ $ring-text-color: rgba(217, 241, 236, 1);
 $display-font: 'Barlow Condensed', sans-serif;
 
 // ============================================================
+// Mixins
+// ============================================================
+
+// the keyboard focus indicator, defined once so every focusable element
+// gets identical geometry.
+//
+// an outline rather than a border-color swap: outlines draw *outside* the
+// element's own border, so focus adds a ring instead of repainting one
+// that's already there, and forced-colors mode (Windows High Contrast)
+// honors them where it overrides border-color entirely.
+//
+// the color is a parameter because it has to follow the surface, not the
+// palette. WCAG 1.4.11 wants 3:1 against whatever sits next to the ring,
+// and this app puts focusable elements on backgrounds at both extremes,
+// so no single color clears the bar everywhere. the three cases:
+//
+//   $electric-blue -- the form only. 3.63:1 on the form card's $soft-white,
+//     which is the lightest surface in the app. it does NOT survive the
+//     $soft-blue page background (2.98:1), so it can't be the default.
+//   $ink           -- everything else on a light background, i.e. the
+//     header link (12.5:1 on the page).
+//   $soft-white    -- the $ink surfaces, i.e. the dark match panels and
+//     the footer (15.2:1).
+@mixin focus-ring($color: $ink) {
+  outline: 3px solid $color;
+  outline-offset: 2px;
+}
+
+// ============================================================
 // Base / reset overrides
 // ============================================================
 
@@ -133,6 +162,10 @@ h1 {
         color: $orange;
         text-decoration-color: $orange;
       }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
     }
   }
 }
@@ -171,10 +204,10 @@ h1 {
     appearance: none;
     background-color: transparent;
     border: none;
-    // the wrapper's :focus-within border is our custom focus indicator --
+    // the wrapper's :focus-within outline is our custom focus indicator --
     // without this, the browser's own native focus outline still draws
     // too, tightly hugging the select's internal content box instead of
-    // our stretched one, showing up as a second border-within-a-border
+    // our stretched one, showing up as a second ring inside the first
     outline: none;
     // horizontal padding lives here (not on the .select wrapper) for the
     // same reason height does: padding on the wrapper leaves a strip on
@@ -225,7 +258,7 @@ h1 {
     // fight with pointer-events) -- :focus-within matches whenever the
     // <select> inside has focus
     &:focus-within {
-      border-color: $soft-blue;
+      @include focus-ring($electric-blue);
     }
   }
   .select::after {
@@ -348,10 +381,9 @@ h1 {
   }
 
   .input-wrap:focus-within {
-    // swap the border color itself instead of layering a separate outline
-    // on top of the permanent black border -- same fix as .select below,
-    // avoids showing both colors as a border-within-a-border
-    border-color: $soft-blue;
+    // on the wrapper, not the bare input -- the input has no border of its
+    // own, so a ring on it would sit inside the field's visible edge
+    @include focus-ring($electric-blue);
   }
 
   // date range sits left, the button sits right, on the same row
@@ -404,6 +436,14 @@ h1 {
       .arrow {
         transform: translateX(4px);
       }
+    }
+
+    // :focus-visible, not :focus -- a mouse click would otherwise leave the
+    // ring sitting on the button after submitting. the 2px outline-offset
+    // puts the ring on the form's $soft-white, clear of the button's own
+    // ink fill
+    &:focus-visible {
+      @include focus-ring($electric-blue);
     }
   }
 
@@ -984,6 +1024,10 @@ h1 {
       background: $ink;
       color: $soft-white;
     }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
   }
 }
 
@@ -1041,6 +1085,11 @@ h1 {
       background: $soft-blue;
       color: $ink;
     }
+
+    // the panel is $ink here, so the default ink ring would vanish into it
+    &:focus-visible {
+      @include focus-ring($soft-white);
+    }
   }
 }
 
@@ -1077,6 +1126,11 @@ h1 {
     &:hover {
       color: $orange;
       text-decoration-color: $orange;
+    }
+
+    // footer background is $ink -- same reason as .match-table--dark above
+    &:focus-visible {
+      @include focus-ring($soft-white);
     }
   }
 }
