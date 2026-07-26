@@ -32,11 +32,26 @@
       content="Compare two Last.fm listeners' top artists and tracks, see a compatibility score, and discover what music you have in common."
     />
 
+    <!-- REPLACE the two absolute URLs below with the real domain once the
+         site is deployed. og:image and og:url must be absolute -- scrapers
+         fetch them without a page to resolve a relative path against, so a
+         wrong host means no preview card at all. -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lastfm-match.netlify.app/" />
     <meta property="og:title" content="Last.fm Match — Compare your music taste" />
     <meta
       property="og:description"
       content="Compare two Last.fm listeners' top artists and tracks, see a compatibility score, and discover what music you have in common."
+    />
+    <!-- PNG, not SVG: the scrapers behind these cards don't rasterise SVG.
+         width/height let a client lay the card out before the image lands -->
+    <meta property="og:image" content="https://lastfm-match.netlify.app/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Last.fm Match — a compatibility score ring reading 87% between two listeners."
     />
 
     <meta name="twitter:card" content="summary_large_image" />
