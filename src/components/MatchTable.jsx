@@ -107,10 +107,7 @@ const MatchTable = ({
   // nothing in this list: MatchDescription already explains it
   if (items.length === 0) return null
 
-  const { displayed, visible, hasMore, max } = getDisplayPage(
-    items,
-    visibleCount,
-  )
+  const { visible, hasMore, max } = getDisplayPage(items, visibleCount)
 
   // the username column shrinks to fit whichever of the two names is
   // longer (so a short name like "rj" doesn't leave a gap before the bar),
@@ -146,7 +143,7 @@ const MatchTable = ({
           <section aria-labelledby={headingId}>
             <div className='section-head'>
               <h2 className='shared-list-heading' id={headingId}>
-                {heading} <span className='count'>({displayed.length})</span>
+                {heading} <span className='count'>({items.length})</span>
               </h2>
               <div className='legend'>
                 <span className='key'>
@@ -191,7 +188,7 @@ const MatchTable = ({
                 className='see-more'
                 onClick={() =>
                   setVisibleCount((count) =>
-                    Math.min(count + PAGE_SIZE, displayed.length),
+                    Math.min(count + PAGE_SIZE, items.length),
                   )
                 }
               >

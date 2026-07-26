@@ -18,11 +18,10 @@ describe('getDisplayPage', () => {
     expect(result.hasMore).toBe(true)
   })
 
-  it('caps the pool itself at `cap`, independent of visibleCount', () => {
+  it('does not cap the pool -- a long overlap stays fully browsable', () => {
     const items = Array.from({ length: 150 }, (_, i) => item(i, i))
-    const result = getDisplayPage(items, 200, 100)
-    expect(result.displayed).toHaveLength(100)
-    expect(result.visible).toHaveLength(100)
+    const result = getDisplayPage(items, 200)
+    expect(result.visible).toHaveLength(150)
     expect(result.hasMore).toBe(false)
   })
 
