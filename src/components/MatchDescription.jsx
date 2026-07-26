@@ -37,6 +37,13 @@ const MatchDescription = ({
         </div>
       ) : showResults ? (
         <div className='match-results'>
+          {/* the score ring reads as this section's heading visually, but
+          there's no text equivalent -- without one the heading outline
+          jumps from the page title straight to "shared artists", so the
+          score and the copy below it can't be reached by heading
+          navigation. .sr-only is position:absolute, so it stays out of
+          the layout here */}
+          <h2 className='sr-only'>Match results</h2>
           <div className='compatibility-percentage'>
             <ScoreDisplay score={score} />
           </div>

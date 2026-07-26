@@ -132,13 +132,20 @@ const MatchTable = ({
     measureTextWidth(String(max), PLAYS_FONT),
   )}px`
 
+  // a <section> is only exposed as a landmark once it has an accessible
+  // name, so point it at the heading it already contains -- that promotes
+  // both panels into the screen reader's landmark list. derived from
+  // `heading` so the two instances ("shared artists"/"shared tracks") get
+  // distinct ids
+  const headingId = `${heading.replace(/\s+/g, '-')}-heading`
+
   return (
     <div className='shared-list-panel' ref={scrollRef}>
       <div className={dark ? 'match-table match-table--dark' : 'match-table'}>
         <div className='match-table-lists'>
-          <section>
+          <section aria-labelledby={headingId}>
             <div className='section-head'>
-              <h2 className='shared-list-heading'>
+              <h2 className='shared-list-heading' id={headingId}>
                 {heading} <span className='count'>({displayed.length})</span>
               </h2>
               <div className='legend'>

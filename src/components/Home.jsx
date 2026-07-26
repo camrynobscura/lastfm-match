@@ -11,6 +11,17 @@ import MatchTable from './MatchTable'
 // the invalid username field(s) point at it via aria-describedby
 const ERROR_ID = 'match-error'
 
+// "no shared artists" / "1 shared artist" / "14 shared artists"
+const countPhrase = (count, noun) =>
+  count === 0 ? `no ${noun}s` : `${count} ${noun}${count === 1 ? '' : 's'}`
+
+// deliberately shorter than the loading box's visible copy ("finding your
+// compatibility score..."). role="status" is polite, so it waits for a gap
+// and then reads to the end -- a long sentence still being spoken when the
+// results arrive pushes the summary, the message that actually matters, to
+// the back of the queue. searches often finish inside that sentence.
+const LOADING_ANNOUNCEMENT = 'Loading'
+
 const Home = () => {
   // the score/description section -- what we scroll into view once
   // loading starts
@@ -18,6 +29,10 @@ const Home = () => {
   // the shared-artists panel -- scrolled to (once results land) so its
   // top edge sits at the bottom of the viewport
   const sharedArtistsRef = useRef(null)
+  // the two username inputs -- focused after a failed submit so the field
+  // that needs fixing is where the cursor lands
+  const usernameOneRef = useRef(null)
+  const usernameTwoRef = useRef(null)
 
   // data from form input
   let [usernameOne, setUsernameOne] = useState('')
@@ -40,6 +55,10 @@ const Home = () => {
   const [submitInvalidField, setSubmitInvalidField] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
+  // bumped on every submit, and handed to ErrorMessage as its key. two
+  // submits that produce the same error message would otherwise leave the
+  // DOM untouched, so the error box never re-announces (see ErrorMessage)
+  const [submitCount, setSubmitCount] = useState(0)
 
   const {
     score: compatibilityScore,
@@ -68,11 +87,35 @@ const Home = () => {
   // failure), so neither input gets marked invalid.
   const invalidField = isLoading ? null : submitInvalidField || derivedInvalidField
 
+  // what the live region below announces, across the whole flow: the
+  // waiting state first, then the outcome. one always-mounted region rather
+  // than one per state -- a region that appears together with its text is
+  // announced unreliably (LoadingIndicator used to own this and was silent
+  // in VoiceOver). the announced wording is its own thing, not the
+  // indicator's visible copy -- see LOADING_ANNOUNCEMENT above.
+  //
+  // the summary is composed from the score/list values rather than read off
+  // the rendered results: ScoreDisplay animates its number from 0 up to the
+  // final score over 2s, so a region wrapping the visible score would fire
+  // on every one of those ~120 frames. counts match the visible "shared
+  // artists (N)" headings. stays empty on error -- ErrorMessage's
+  // role="alert" announces that case.
+  let statusMessage = ''
+  if (isLoading) {
+    statusMessage = LOADING_ANNOUNCEMENT
+  } else if (hasSubmitted && !error) {
+    statusMessage =
+      `${Math.round(compatibilityScore)}% compatible. ` +
+      `${countPhrase(matchingArtists.length, 'shared artist')}, ` +
+      `${countPhrase(matchingTracks.length, 'shared track')}.`
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitError(null)
     setSubmitInvalidField(null)
     setHasSubmitted(false)
+    setSubmitCount((n) => n + 1)
 
     const trimmedOne = usernameOne.trim()
     const trimmedTwo = usernameTwo.trim()
@@ -127,6 +170,29 @@ const Home = () => {
       setHasSubmitted(true)
     }
   }
+
+  // after a failed submit, put the cursor in the field that needs fixing.
+  // the error text says what's wrong, but focus would otherwise stay on the
+  // Match button -- so someone who can't see the form knows what to fix
+  // without knowing where it is. landing on the input reads out its label
+  // and invalid state, which confirms the target.
+  //
+  // keyed on submitCount so it fires exactly once per submit (including a
+  // repeat of the same error) and never on an unrelated re-render, which
+  // would yank focus out of whatever field was being typed in.
+  //
+  // submitInvalidField only, never the derived one: "user not found" lands
+  // seconds later, once the fetch resolves, and grabbing focus at that
+  // point would interrupt whatever the user had moved on to.
+  useEffect(() => {
+    if (!submitInvalidField) return
+    // 'both' -> the first field, as the first thing needing attention
+    const target =
+      submitInvalidField === 'two'
+        ? usernameTwoRef.current
+        : usernameOneRef.current
+    target?.focus()
+  }, [submitCount, submitInvalidField])
 
   // nudge the loading box into view the moment loading starts, so the
   // equalizer bars are visible right away. goes a bit past just bringing
@@ -227,6 +293,7 @@ const Home = () => {
                   </span>
                   <input
                     id='username-one'
+                    ref={usernameOneRef}
                     type='text'
                     className='search-input'
                     value={usernameOne}
@@ -256,6 +323,7 @@ const Home = () => {
                   </span>
                   <input
                     id='username-two'
+                    ref={usernameTwoRef}
                     type='text'
                     className='search-input'
                     value={usernameTwo}
@@ -313,7 +381,19 @@ const Home = () => {
           message={error}
           scrollRef={error ? scoreRef : null}
           id={ERROR_ID}
+          announceKey={submitCount}
         />
+        {/* the one status region for the whole flow -- neither the loading
+        box nor the results announce anything on their own.
+
+        rendered unconditionally, with only its text swapping: a live
+        region inserted into the DOM at the same moment as its content is
+        announced unreliably across screen reader/browser pairs. role
+        ="status" is aria-live="polite" + aria-atomic, so it waits its turn
+        and reads the whole sentence rather than just the changed part */}
+        <p className='sr-only' role='status'>
+          {statusMessage}
+        </p>
         <MatchDescription
           score={compatibilityScore}
           matchingArtists={matchingArtists.map((artist) => artist.key)}
