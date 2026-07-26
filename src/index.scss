@@ -343,7 +343,14 @@ h1 {
     gap: 8px;
     box-sizing: border-box;
     width: 100%;
-    padding: 11px 14px;
+    // vertical padding lives on the <input> instead (see below), so the
+    // field fills the box's full height and the whole thing is clickable.
+    // with it here, the top and bottom 11px were dead space -- clicking
+    // what looks like the field did nothing at all
+    padding: 0 14px;
+    // the box reads as a text field, so the pointer should say so across
+    // all of it, not just the input itself
+    cursor: text;
     // black border instead of navy, matching the mockup
     border: 2px solid $ink;
     border-radius: 0;
@@ -362,15 +369,19 @@ h1 {
     width: 100%;
     min-width: 0;
     margin: 0;
-    padding: 0;
+    // the wrapper's former vertical padding, moved here so the input is
+    // the full height of the visible box. 24px line + 11px top + 11px
+    // bottom = 46px, plus the wrapper's 2px borders = the same 50px the
+    // field has always been
+    padding: 11px 0;
     border: none;
     border-radius: 0;
     background-color: transparent;
     color: $ink;
     font-weight: 600;
-    // .input-wrap:focus-within already draws the focus indicator (border
-    // color swap) -- without this, the browser's own native focus ring
-    // would also draw, inside that border
+    // .input-wrap:focus-within already draws the focus indicator -- without
+    // this, the browser's own native focus ring would also draw, hugging
+    // the bare input inside the wrapper's ring
     outline: none;
 
     &::placeholder {
