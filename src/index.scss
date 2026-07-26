@@ -853,8 +853,12 @@ h1 {
 
     // dimmed so the eye lands on the artist, not the connector. visible
     // rather than sr-only, to set this line apart from the bar usernames
+    //
+    // this multiplies with the alpha already on .secondary's color, so it
+    // dims further than it looks: 0.55 landed the pair at 3.69:1 on the
+    // dark panel, under the 4.5:1 this size needs. 0.636 is the floor
     .by-prefix {
-      opacity: 0.55;
+      opacity: 0.7;
     }
   }
 
