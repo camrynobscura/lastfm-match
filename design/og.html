@@ -1,0 +1,181 @@
+<!doctype html>
+<!--
+  Source for public/og.png — the link preview card shown when the site is
+  shared on Slack, iMessage, Discord, X, LinkedIn.
+
+  Edit this, then run `npm run og` to re-render it. Don't edit the PNG
+  directly; it gets overwritten.
+
+  Rendered at exactly 1200x630 (the standard OG ratio) against the app's
+  real palette and self-hosted fonts, so it stays in step with the site.
+  The obvious things to change are marked TUNE below.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>og image source</title>
+    <style>
+      /* the app's own fonts, relative to this file */
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-style: normal;
+        font-weight: 700;
+        src: url('../public/fonts/barlow-condensed-700-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'SUSE Mono';
+        font-style: normal;
+        font-weight: 100 800;
+        src: url('../public/fonts/suse-mono-100800-latin.woff2')
+          format('woff2');
+      }
+
+      /* the app's palette, mirroring src/index.scss */
+      :root {
+        --ink: #171728;
+        --orange: #ff4b32;
+        --soft-blue: #bedcff;
+        --soft-white: #eeeeee;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      /* must stay 1200x630 -- the render script screenshots this viewport */
+      body {
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--soft-blue);
+        font-family: 'SUSE Mono', monospace;
+      }
+
+      /* same border + hard shadow as the app's result card */
+      .card {
+        width: 1040px;
+        height: 470px;
+        background: var(--soft-white);
+        border: 5px solid var(--ink);
+        box-shadow: 22px 22px 0 rgba(23, 23, 40, 0.9);
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        padding: 0 64px;
+      }
+
+      .ring {
+        position: relative;
+        width: 320px;
+        height: 320px;
+        flex: none;
+      }
+      /* start the arc at 12 o'clock, as the app's score ring does */
+      .ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+      .ring-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--soft-white);
+      }
+      .num {
+        font-weight: 700;
+        font-size: 6.4rem;
+        line-height: 0.8;
+        letter-spacing: -0.02em;
+      }
+      .num .pct {
+        font-size: 0.55em;
+        font-weight: 400;
+        margin-left: 4px;
+      }
+      .cap {
+        font-size: 1.35rem;
+        padding-top: 10px;
+      }
+
+      h1 {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 5.4rem;
+        line-height: 0.88;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      h1 .dot {
+        color: var(--orange);
+      }
+
+      .names {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        font-size: 2.6rem;
+        line-height: 1;
+        color: var(--ink);
+        margin-top: 22px;
+      }
+      /* U+00D7 sits low on the font's math axis; same nudge as .pairing-x */
+      .names .x {
+        color: var(--orange);
+        margin: 0 12px;
+        position: relative;
+        top: -0.04em;
+      }
+
+      .tag {
+        font-size: 1.45rem;
+        line-height: 1.5;
+        color: var(--ink);
+        margin-top: 20px;
+        max-width: 30ch;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="ring">
+        <svg viewBox="0 0 190 190">
+          <circle cx="95" cy="95" r="92" fill="#171728" />
+          <!-- TUNE the arc: dashoffset = 515.2 * (1 - percent/100).
+               515.2 is the circumference at r=82. 87% -> 67 -->
+          <circle
+            cx="95"
+            cy="95"
+            r="82"
+            fill="none"
+            stroke="#ff4b32"
+            stroke-width="9"
+            stroke-linecap="round"
+            stroke-dasharray="515.2"
+            stroke-dashoffset="67"
+          />
+        </svg>
+        <div class="ring-center">
+          <!-- TUNE the number (keep it in step with the arc above) -->
+          <span class="num">87<span class="pct">%</span></span>
+          <span class="cap">compatible</span>
+        </div>
+      </div>
+      <div class="right">
+        <h1>Last<span class="dot">.</span>fm<br />Match</h1>
+        <!-- TUNE: deliberately generic rather than real usernames -->
+        <div class="names">you <span class="x">×</span> them</div>
+        <p class="tag">
+          Compare two listeners and find the artists and tracks you share.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -18,6 +18,9 @@ Last.fm Match is a React + Vite single-page app that compares two Last.fm users'
 - `npm run lint` — run ESLint over the project.
 - `npm test` — run the Vitest suite (currently covers `src/lib/*` only — the
   pure scoring/error-mapping logic, not components).
+- `npm run og` — re-render `public/og.png` from `design/og.html`. Edit the
+  HTML, never the PNG; this overwrites it. Uses the machine's installed
+  Chrome via `playwright-core`, so no browser download.
 
 ## Environment variables
 
