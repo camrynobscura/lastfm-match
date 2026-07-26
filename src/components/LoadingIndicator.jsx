@@ -6,7 +6,11 @@
 const LoadingIndicator = () => {
   return (
     <div className='loading-indicator'>
+      {/* 9 bars: each is styled by :nth-child, so adding or removing one
+          needs a matching peak/delay pair in .equalizer */}
       <div className='equalizer' aria-hidden='true'>
+        <span></span>
+        <span></span>
         <span></span>
         <span></span>
         <span></span>

@@ -1073,7 +1073,9 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 50px 0 16px 0;
+  // the bars carry the height now; the old 50px top was padding out a box
+  // that the animation didn't fill
+  padding: 26px 0 0px 0;
 
   p {
     max-width: 260px;
@@ -1085,65 +1087,93 @@ h1 {
   }
 
   .equalizer {
+    // one LED segment. every height below is a whole number of these, so
+    // each animation step lands exactly on a segment edge -- scale the bars
+    // by changing this alone, never the multiples
+    --block: 6px;
+
     display: flex;
     align-items: flex-end;
-    gap: 14px;
-    // 12 blocks of 8px, so every bar's rise/fall lands on a block edge
-    height: 96px;
+    gap: calc(var(--block) * 1.5);
+    height: calc(var(--block) * 12);
+
+    // 9 bars 3 blocks wide with 1.5-block gaps is 39 blocks across, so each
+    // step up needs the box to have grown by another 39px of interior. the
+    // blocks stay even so the 1.5-block gap lands on a whole pixel
+    @media (min-width: 520px) {
+      --block: 10px;
+    }
+    @media (min-width: 640px) {
+      --block: 12px;
+    }
 
     span {
       box-sizing: border-box;
-      width: 24px;
+      width: calc(var(--block) * 3);
       height: 100%;
       border-radius: 0;
-      // stacked LED-style segments instead of one solid fill
+      // stacked LED-style segments instead of one solid fill. the unlit gap
+      // is a constant 2px rather than a share of the block, so the segment
+      // edge stays on a whole pixel at every --block
       background-image: repeating-linear-gradient(
         to top,
-        $orange 0px,
-        $orange 6px,
-        transparent 6px,
-        transparent 8px
+        $orange 0,
+        $orange calc(var(--block) - 2px),
+        transparent calc(var(--block) - 2px),
+        transparent var(--block)
       );
       animation-name: equalize;
       animation-duration: 1.1s;
       animation-iteration-count: infinite;
       // negative delays start each bar mid-wave, avoiding the full-height
       // freeze while a positive delay elapses
+      // the 9 delays are one cycle split evenly (1.1s / 9), so the bars are
+      // spread across the wave instead of clumping
       animation-delay: -1.1s;
-      // --peak is a whole number of 8px blocks above the 24px trough, and
-      // steps() matches that count, so each step is exactly one block
-      --peak: 64px;
-      animation-timing-function: steps(5);
+      // --peak is in blocks above the 3-block trough, and steps() is that
+      // difference, so each step advances exactly one block
+      --peak: 7;
+      animation-timing-function: steps(4);
     }
 
     span:nth-child(2) {
-      animation-delay: -0.94s;
-      --peak: 96px;
-      animation-timing-function: steps(9);
+      animation-delay: -0.98s;
+      --peak: 11;
+      animation-timing-function: steps(8);
     }
     span:nth-child(3) {
-      animation-delay: -0.79s;
-      --peak: 48px;
+      animation-delay: -0.86s;
+      --peak: 6;
       animation-timing-function: steps(3);
     }
     span:nth-child(4) {
-      animation-delay: -0.63s;
-      --peak: 80px;
-      animation-timing-function: steps(7);
-    }
-    span:nth-child(5) {
-      animation-delay: -0.47s;
-      --peak: 56px;
-      animation-timing-function: steps(4);
-    }
-    span:nth-child(6) {
-      animation-delay: -0.31s;
-      --peak: 96px;
+      animation-delay: -0.73s;
+      --peak: 12;
       animation-timing-function: steps(9);
     }
+    span:nth-child(5) {
+      animation-delay: -0.61s;
+      --peak: 8;
+      animation-timing-function: steps(5);
+    }
+    span:nth-child(6) {
+      animation-delay: -0.49s;
+      --peak: 10;
+      animation-timing-function: steps(7);
+    }
     span:nth-child(7) {
-      animation-delay: -0.16s;
-      --peak: 72px;
+      animation-delay: -0.37s;
+      --peak: 6;
+      animation-timing-function: steps(3);
+    }
+    span:nth-child(8) {
+      animation-delay: -0.24s;
+      --peak: 12;
+      animation-timing-function: steps(9);
+    }
+    span:nth-child(9) {
+      animation-delay: -0.12s;
+      --peak: 9;
       animation-timing-function: steps(6);
     }
   }
@@ -1156,11 +1186,11 @@ h1 {
 @keyframes equalize {
   0%,
   100% {
-    // the shared trough every bar returns to: 3 blocks
-    height: 24px;
+    // the shared trough every bar returns to
+    height: calc(var(--block) * 3);
   }
   50% {
-    height: var(--peak, 96px);
+    height: calc(var(--block) * var(--peak, 12));
   }
 }
 
