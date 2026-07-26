@@ -4,6 +4,28 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- fonts are self-hosted (see src/fonts.scss), so there's no
+         third-party stylesheet to fetch first. these two carry the
+         above-the-fold text -- the h1 and the body copy -- and preloading
+         starts them immediately rather than waiting for the CSS to parse.
+         crossorigin is required even same-origin: fonts are always fetched
+         in CORS mode, and without it the preload is discarded and fetched
+         twice -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/barlow-condensed-700-latin.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/suse-mono-100800-latin.woff2"
+      crossorigin
+    />
     <title>Last.fm Match — Compare your music taste</title>
     <meta
       name="description"
