@@ -5,50 +5,29 @@
 // Variables
 // ============================================================
 
-// leftover from the original mockup palette. $ring-text-color and
-// $soft-blue are named for their one job each (the score ring's text,
-// the focus-ring border); $soft-blue is named for its hue since it
-// does double duty -- it's both the page background and a light
-// text/border color used throughout the dark match-table panel
-
-// candy accents carried over from the Page Break mockup redesign
 $ink: #171728;
 $orange: #ff4b32;
 $electric-blue: #0075ff;
-$soft-blue: #bedcff;
+$soft-blue: #bedcff; // page background, and light text on the dark panels
 $soft-white: #eeeeee;
 $highlight: #73b4ff;
 $form-field: #e3effc;
-$ring-text-color: rgba(217, 241, 236, 1);
 
-// condensed display face; SUSE Mono (set on :root below) stays the
-// body/UI font
+// display face; SUSE Mono (on :root below) is the body/UI font
 $display-font: 'Barlow Condensed', sans-serif;
 
 // ============================================================
 // Mixins
 // ============================================================
 
-// the keyboard focus indicator, defined once so every focusable element
-// gets identical geometry.
+// keyboard focus indicator. an outline, not a border-color swap: it draws
+// outside the resting border rather than repainting it, and forced-colors
+// mode honors outlines where it overrides border-color.
 //
-// an outline rather than a border-color swap: outlines draw *outside* the
-// element's own border, so focus adds a ring instead of repainting one
-// that's already there, and forced-colors mode (Windows High Contrast)
-// honors them where it overrides border-color entirely.
-//
-// the color is a parameter because it has to follow the surface, not the
-// palette. WCAG 1.4.11 wants 3:1 against whatever sits next to the ring,
-// and this app puts focusable elements on backgrounds at both extremes,
-// so no single color clears the bar everywhere. the three cases:
-//
-//   $electric-blue -- the form only. 3.63:1 on the form card's $soft-white,
-//     which is the lightest surface in the app. it does NOT survive the
-//     $soft-blue page background (2.98:1), so it can't be the default.
-//   $ink           -- everything else on a light background, i.e. the
-//     header link (12.5:1 on the page).
-//   $soft-white    -- the $ink surfaces, i.e. the dark match panels and
-//     the footer (15.2:1).
+// the color has to follow the surface -- no single value clears WCAG
+// 1.4.11's 3:1 everywhere. $electric-blue only works on the form card
+// (2.98:1 on the page background, so it can't be the default), $ink on
+// other light surfaces, $soft-white on the $ink panels and footer.
 @mixin focus-ring($color: $ink) {
   outline: 3px solid $color;
   outline-offset: 2px;
@@ -144,8 +123,6 @@ h1 {
 }
 
 .head {
-  // padding-top: 38px;
-  // padding-bottom: 52px;
   padding: 52px 0;
   .app-description {
     max-width: 430px;
@@ -158,10 +135,8 @@ h1 {
       text-decoration-color: $ink;
       text-underline-offset: 2px;
 
-      // the text itself stays $ink -- $orange on the $soft-blue page is
-      // 2.36:1, nowhere near the 4.5:1 body text needs. recoloring only
-      // the underline keeps the hover cue in the accent while the words
-      // stay readable at 12.5:1
+      // accent goes on the underline, not the text: $orange on the page
+      // background is 2.36:1, well under the 4.5:1 body text needs
       &:hover {
         text-decoration-color: $orange;
       }
@@ -174,10 +149,8 @@ h1 {
 }
 
 .content {
-  // single centered column: form card, then result row, then the two
-  // shared-list panels stacked full width. no gap here -- the two
-  // shared-list panels need to sit flush against each other, so
-  // spacing above them lives on .form / .match-description instead
+  // no gap: the two shared-list panels sit flush against each other, so
+  // spacing lives on .form / .match-description instead
   display: flex;
   flex-direction: column;
 }
@@ -207,15 +180,12 @@ h1 {
     appearance: none;
     background-color: transparent;
     border: none;
-    // the wrapper's :focus-within outline is our custom focus indicator --
-    // without this, the browser's own native focus outline still draws
-    // too, tightly hugging the select's internal content box instead of
-    // our stretched one, showing up as a second ring inside the first
+    // the wrapper draws the focus ring; without this the native one draws
+    // too, as a second ring inside it
     outline: none;
-    // horizontal padding lives here (not on the .select wrapper) for the
-    // same reason height does: padding on the wrapper leaves a strip on
-    // each side that's outside the <select>'s own box, so clicking there
-    // misses it. right side reserves room for the caret.
+    // padding here rather than on .select so the whole box is clickable --
+    // wrapper padding sits outside the <select> and misses clicks. the
+    // right side reserves room for the caret
     padding: 0 calc(1.4em + 16px) 0 16px;
     margin: 0;
     width: 100%;
@@ -233,33 +203,22 @@ h1 {
     cursor: pointer;
     display: grid;
     grid-template-areas: 'select';
-    // stretch (not center) so the <select> itself fills the whole padded
-    // button -- otherwise it only claims its own text-line height, leaving
-    // the visible padding above/below unclickable dead space. the caret
-    // (::after) re-centers itself independently below.
+    // stretch so the <select> fills the padded box -- otherwise it claims
+    // only its text-line height and the padding is dead to clicks
     align-items: stretch;
     box-sizing: border-box;
     margin: 0;
-    // an explicit height (not vertical padding) is what makes stretch
-    // above actually work -- .select's height was previously implicit
-    // (auto, driven by the select's own content size), and stretching a
-    // grid item into an auto-sized track that only exists *because of*
-    // that item's own size is circular and does nothing. 50px matches
-    // .input-wrap's total height (its own 11px padding + 2px border +
-    // content line)
+    // explicit height is what makes that stretch work: an auto-sized track
+    // driven by the item's own size can't stretch it. 50px matches
+    // .input-wrap
     height: 50px;
     padding: 0;
     border: 2px solid $ink;
     border-radius: 0;
-    // same background as the listener one/two fields
-    // background-color: rgba($electric-blue, 0.1);
     background-color: $form-field;
 
     color: $ink;
 
-    // focus ring lives on the wrapper itself (no extra overlay element to
-    // fight with pointer-events) -- :focus-within matches whenever the
-    // <select> inside has focus
     &:focus-within {
       @include focus-ring($electric-blue);
     }
@@ -268,14 +227,13 @@ h1 {
     content: '';
     width: 0.8em;
     height: 0.5em;
-    // same light blue as the @ symbol in the listener fields
     background-color: $electric-blue;
     clip-path: polygon(100% 0%, 0 0%, 50% 100%);
     justify-self: end;
-    // .select is now align-items: stretch, so re-center the caret itself
+    // .select is align-items: stretch, so re-center the caret itself
     align-self: center;
-    // .select's own padding is 0 now (moved onto <select>), so this
-    // restores the caret's original 16px inset from the wrapper's border
+    // .select's padding is 0 (moved onto <select>), so this restores the
+    // caret's 16px inset from the wrapper border
     margin-right: 16px;
   }
 
@@ -294,23 +252,18 @@ h1 {
   }
 
   .vs-x {
-    // hidden in the stacked (column) layout -- it doesn't read well
-    // sitting between two full-width fields on mobile. becomes flex at the
-    // 560px breakpoint below
+    // hidden in the stacked layout; becomes flex at the 560px breakpoint
     display: none;
     align-items: center;
     justify-content: center;
     justify-self: center;
-    // .field-row is align-items: end, so this box bottom-aligns with the
-    // input boxes -- matching their 50px height makes it overlay them
-    // exactly, and centring inside it centres the glyph on the field
-    // rather than on the whole column (which is taller, by the label)
+    // .field-row is align-items: end, so matching the input's 50px makes
+    // this box overlay the field exactly -- centring here centres on the
+    // field rather than on the taller column
     height: 50px;
-    // align-items centres the *line box*; U+00D7 is drawn on the font's
-    // math axis, so its ink still sits ~2px low inside that box. with the
-    // global border-box, this padding shrinks the content box to 46px and
-    // lifts the centred glyph by half of it -- correcting the ink without
-    // leaving the flow the way a relative offset would
+    // centring aligns the line box, but U+00D7 sits on the font's math
+    // axis so its ink is still ~2px low. border-box means this padding
+    // shrinks the content box and lifts the glyph that 2px
     padding-bottom: 4px;
     font-family: $display-font;
     font-weight: 700;
@@ -343,18 +296,12 @@ h1 {
     gap: 8px;
     box-sizing: border-box;
     width: 100%;
-    // vertical padding lives on the <input> instead (see below), so the
-    // field fills the box's full height and the whole thing is clickable.
-    // with it here, the top and bottom 11px were dead space -- clicking
-    // what looks like the field did nothing at all
+    // vertical padding lives on the <input> (below) so it fills the box
+    // and the whole thing is clickable -- here it was dead space
     padding: 0 14px;
-    // the box reads as a text field, so the pointer should say so across
-    // all of it, not just the input itself
     cursor: text;
-    // black border instead of navy, matching the mockup
     border: 2px solid $ink;
     border-radius: 0;
-    // background-color: rgba($electric-blue, 0.1);
     background-color: $form-field;
 
     .at {
@@ -369,35 +316,29 @@ h1 {
     width: 100%;
     min-width: 0;
     margin: 0;
-    // the wrapper's former vertical padding, moved here so the input is
-    // the full height of the visible box. 24px line + 11px top + 11px
-    // bottom = 46px, plus the wrapper's 2px borders = the same 50px the
-    // field has always been
+    // the wrapper's vertical padding, moved here so the input fills the
+    // box: 24px line + 11px top + 11px bottom + the wrapper's 2px borders
+    // = the same 50px as before
     padding: 11px 0;
     border: none;
     border-radius: 0;
     background-color: transparent;
     color: $ink;
     font-weight: 600;
-    // .input-wrap:focus-within already draws the focus indicator -- without
-    // this, the browser's own native focus ring would also draw, hugging
-    // the bare input inside the wrapper's ring
+    // the wrapper draws the focus ring; without this the native one draws
+    // too, inside it
     outline: none;
 
     &::placeholder {
-      // 0.55 measured at 3.80:1 against the tinted input background --
-      // below the 4.5:1 WCAG 1.4.3 minimum for text. 0.65 clears it
-      // (~5.18:1) with a bit of margin for cross-browser rendering.
+      // 0.65 measures 5.18:1 on the tinted field; 0.55 was 3.80:1, under
+      // the 4.5:1 minimum
       color: rgba($ink, 0.65);
     }
 
-    // Chromium browsers (Edge/Chrome) paint autofilled fields with their
-    // own gray background + white text, which clashes with the wrapper's
-    // $form-field blue showing through this transparent input. the
-    // background is drawn with an internal !important rule that
-    // background-color can't override -- a large inset box-shadow fills
-    // the box with our color instead, and -webkit-text-fill-color
-    // restores the text (autofill overrides `color`, not text-fill-color).
+    // Chromium paints autofilled fields grey-on-white with an internal
+    // !important rule that background-color can't beat -- a big inset
+    // shadow fills the box instead, and text-fill-color restores the text
+    // (autofill overrides `color`, not text-fill-color)
     &:-webkit-autofill,
     &:-webkit-autofill:hover,
     &:-webkit-autofill:focus,
@@ -407,9 +348,9 @@ h1 {
     }
   }
 
+  // on the wrapper, not the input: the input has no border of its own, so
+  // a ring on it would sit inside the field's visible edge
   .input-wrap:focus-within {
-    // on the wrapper, not the bare input -- the input has no border of its
-    // own, so a ring on it would sit inside the field's visible edge
     @include focus-ring($electric-blue);
   }
 
@@ -441,15 +382,11 @@ h1 {
     gap: 10px;
     box-sizing: border-box;
     padding: 10px 28px;
-    // black fill + border + hard drop shadow, matching the mockup's button
     border: 2px solid $ink;
     color: $soft-white;
     border-radius: 999px;
     background-color: $ink;
-    transition:
-      transform 0.12s ease,
-      background-color 0.12s ease,
-      border-color 0.12s ease;
+    transition: transform 0.12s ease;
 
     .arrow {
       transition:
@@ -457,10 +394,8 @@ h1 {
         color 0.12s ease;
     }
 
-    // the fill stays $ink and the label stays $soft-white (15.21:1) -- an
-    // $orange fill would drag the label down to 2.87:1, under WCAG 1.4.3's
-    // 3:1 for large text. the accent moves to the arrow instead, which is
-    // decorative (aria-hidden) and clears 5.30:1 on ink
+    // the accent goes on the arrow, not the fill: an $orange fill drops the
+    // label to 2.87:1, under the 3:1 large text needs
     &:hover {
       transform: translateY(-2px);
 
@@ -471,17 +406,12 @@ h1 {
     }
 
     // :focus-visible, not :focus -- a mouse click would otherwise leave the
-    // ring sitting on the button after submitting. the 2px outline-offset
-    // puts the ring on the form's $soft-white, clear of the button's own
-    // ink fill
+    // ring on the button after submitting
     &:focus-visible {
       @include focus-ring($electric-blue);
     }
   }
 
-  // consolidated -- padding, the listener row going from stacked to
-  // side-by-side, and the × separator all change together at this
-  // breakpoint (previously three separate @media blocks)
   @media (min-width: 560px) {
     padding: 22px 28px;
 
@@ -500,11 +430,8 @@ h1 {
 // ============================================================
 
 .match-description {
-  // same width as .form -- width: 100% (not just max-width) so this box
-  // doesn't shrink-wrap to whatever's inside it: the equalizer during
-  // loading is much narrower than the score ring + copy once results
-  // land, and without a forced width the box itself would resize
-  // between the two, not just its .match-results child
+  // width: 100%, not just max-width, so the box doesn't shrink-wrap and
+  // resize between the narrow loading state and the full results
   max-width: 640px;
   width: 100%;
   margin: 30px auto 40px;
@@ -513,8 +440,7 @@ h1 {
   justify-content: center;
   align-items: center;
 
-  // idle, pre-submit: nothing renders inside, so collapse the padding
-  // instead of reserving empty space for it
+  // idle, pre-submit: nothing inside, so don't reserve space for it
   &.is-empty {
     padding: 0;
     margin: 0;
@@ -526,7 +452,7 @@ h1 {
     font-size: clamp(2rem, 4vw, 2.2rem);
     font-weight: 700;
     line-height: 1;
-    // usernames render exactly as entered, not forced to caps
+    // no text-transform: usernames render exactly as entered
     text-align: center;
 
     @media (min-width: 760px) {
@@ -538,16 +464,11 @@ h1 {
   .pairing-x {
     color: $orange;
     margin: 0 8px;
-    // U+00D7 is drawn on the font's math axis (positioned for sitting
-    // between digits), which puts its optical centre ~0.04em below the
-    // centre of the cap-height letters either side of it. nudge it back up
-    // so it reads as centred against the usernames. em, not px, so it
-    // tracks the caption's clamp()ed font-size.
+    // U+00D7 sits on the font's math axis, ~0.04em below the centre of the
+    // caps either side. em so it tracks the clamp()ed font-size.
     //
-    // relative offset rather than vertical-align: raising an inline box
-    // grows the line box around it, which pushed the caption 35.2 -> 36.6px
-    // tall and shifted everything below it down. relative positioning is
-    // applied after layout, so the glyph moves and nothing else does
+    // relative, not vertical-align: raising an inline box grows the line
+    // box and would push everything below it down
     position: relative;
     top: -0.04em;
   }
@@ -563,13 +484,10 @@ h1 {
   text-align: left;
   border: 2px solid $ink;
   box-shadow: 10px 10px 0 rgba($ink, 0.9);
-  // padding: 30px;
   padding: 30px;
   background-color: $soft-white;
-  // same width as .form, so the box doesn't visibly resize between the
-  // loading state (just the equalizer) and the results state (ring +
-  // copy) -- min-height covers the same gap vertically, roughly matching
-  // the score ring's own footprint (180px ring + margin + padding)
+  // fixed width + min-height so the box doesn't visibly resize between the
+  // loading state and the results; 240px roughly matches the ring
   width: 100%;
   min-height: 240px;
 
@@ -580,15 +498,10 @@ h1 {
   }
 
   .match-copy {
-    // min-width:0 lets this flex child shrink below its content's
-    // intrinsic width (flex children default to min-width:auto, which a
-    // long unbreakable artist/track/username string would otherwise blow
-    // out past the card edge). width:100% + box-sizing stops it from
-    // shrink-wrapping to the longest word in the mobile column layout
-    // (align-items:center gives it no width otherwise), giving
-    // overflow-wrap a boundary to break against. overflow-wrap is
-    // inherited, so breaking long strings here also covers .names-caption
-    // and the <p>s inside.
+    // all four guard against a long unbreakable artist/track name blowing
+    // past the card edge: min-width:0 defeats flex's min-width:auto,
+    // width+box-sizing stop it shrink-wrapping in the mobile column, and
+    // overflow-wrap (inherited, so it covers the children too) breaks it
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
@@ -598,9 +511,8 @@ h1 {
 
   .match-lists {
     display: grid;
-    // minmax(0, 1fr) caps the column at the container width -- grid items
-    // (the <p>s) default to min-width:auto and would otherwise let a long
-    // unbreakable artist/track name stretch the column past the card edge
+    // minmax(0, 1fr) caps the column at the container: grid items default
+    // to min-width:auto and a long name would stretch it past the edge
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
 
@@ -632,8 +544,8 @@ h1 {
   }
 }
 
-// its own box, separate from .match-results -- sized to its (short) content
-// instead of inheriting the results card's width/min-height
+// its own box, not .match-results -- sized to its short content rather
+// than the results card's width/min-height
 .match-error {
   max-width: 640px;
   margin: 22px auto 30px;
@@ -730,27 +642,18 @@ h1 {
 // Down-arrow connector
 // ============================================================
 
-// connector between two stacked sections -- points at whatever just
-// appeared below it (loading bars/results/error, or the shared-list
-// panels), same clip-path-triangle technique as the select's caret
 .down-arrow-wrap {
   display: flex;
   justify-content: center;
 }
 
-// each variant centers the arrow within its own specific gap -- the boxes
-// above/below use different padding/margin models (.match-description
-// wraps its visible card in its own padding; .shared-list-panel doesn't),
-// so one fixed margin can't center both placements
+// the two placements sit in gaps built from different padding/margin, so
+// each needs its own margin to end up visually centred
 .down-arrow-wrap--to-results {
-  // above: .form's 30px margin. below: .match-description's 24px
-  // padding-top (it has no margin-top of its own)
   margin: 14px 0 16px;
 }
 
 .down-arrow-wrap--to-secondary {
-  // above: .match-description's 24px padding-bottom + 30px margin-bottom.
-  // below: .shared-list-panel has no top margin/padding of its own
   margin: 14px 0 46px;
 }
 
@@ -765,10 +668,8 @@ h1 {
   animation: arrow-bounce 1.4s ease-in-out infinite;
 }
 
-// the to-secondary arrow settles after a few bounces instead of animating
-// forever -- overrides the infinite loop above just for this one variant
-// (the to-results arrow above it should keep looping for as long as
-// isLoading actually takes, however long that is)
+// this one settles after a few bounces; the to-results arrow keeps looping
+// for however long the fetch actually takes
 .down-arrow-wrap--to-secondary .down-arrow--animated {
   animation-iteration-count: 3;
 }
@@ -778,8 +679,8 @@ h1 {
 // ============================================================
 
 .shared-list-panel {
-  // full-bleed: break out of #root's max-width + padding so the panel's
-  // background/border reach the actual left/right edges of the viewport
+  // full-bleed: break out of #root's max-width so the panel reaches the
+  // viewport edges
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -788,29 +689,23 @@ h1 {
   animation: rise-in 0.4s ease-out backwards;
   animation-delay: 0.36s;
 
-  // the tracks table follows the artists table into view, flush against
-  // it -- no gap between the two panels
+  // the second panel follows the first in, flush against it
   & + & {
     animation-delay: 0.44s;
 
-    // thin orange seam, scoped to the inner content column (not the full
-    // 100vw bleed of .shared-list-panel itself)
+    // seam scoped to the content column, not the full 100vw bleed
     .match-table-lists {
       border-top: 2px solid rgba($electric-blue, .5);
     }
   }
 }
 
-// the tracks panel is the last thing before the footer, and the footer
-// shares its $ink background so the two read as one continuous dark run.
-// the extra room goes on the inside as padding -- a bottom margin would
-// open a band of the $soft-blue page background between them and detach
-// the footer. 26px base (see .match-table below) + 22px
+// padding, not margin: the footer shares this $ink background and sits
+// flush, so a margin would open a light band and detach it. 26px + 22px
 .shared-list-panel--tracks .match-table {
   padding-bottom: 48px;
 }
 
-// the bordered box holding each list; always visible, no top-level toggle
 .match-table {
   border: 2px solid $ink;
   border-radius: 0;
@@ -840,7 +735,6 @@ h1 {
     font-weight: 700;
     line-height: 0.95;
     text-transform: uppercase;
-    // color: $soft-blue !important;
 
     .count {
       font-weight: 400;
@@ -886,12 +780,9 @@ h1 {
 
   .row {
     display: grid;
-    // rank + name share a row, bars get the row below -- same idea as the
-    // desktop layout, just with bars wrapped down instead of a third column
     grid-template-columns: auto 1fr;
-    // bars drop under the name (rank cell left empty) so they sit indented
-    // beneath the track they describe, aligned to the name's left edge --
-    // rather than spanning full width back under the rank number
+    // bars drop under the name with the rank cell empty, so they sit
+    // indented beneath the track rather than back under the rank number
     grid-template-areas:
       'rank name'
       '.    bars';
@@ -914,18 +805,14 @@ h1 {
 
   .rank {
     grid-area: rank;
-    // top-aligned (not the row's default center) so the number always
-    // lines up with the title's first line, whether row-name is one line
-    // (artists) or two (tracks, with the "by artist" subtitle below) --
-    // centering against the full block height made it drift row to row
+    // top-aligned so the number lines up with the title's first line
+    // whether the name runs to one line or two
     align-self: flex-start;
     font-family: $display-font;
     font-weight: 700;
     font-size: 1.4rem;
-    // match .row-name .primary's line-height so the rank's glyphs sit at
-    // the same height as the name's -- both are flex-start, but a taller
-    // inherited line-height (1.5) would pad more space above the digits
-    // and make the rank drift lower than the name beside it
+    // must match .primary's line-height: extra leading is split above the
+    // glyphs, so a taller one here would sit the digits lower than the name
     line-height: 1.2;
     color: rgba($ink, 0.4);
   }
@@ -936,8 +823,8 @@ h1 {
     align-self: flex-start;
 
     @media (min-width: 640px) {
-      // bars sit in the very next column with no gap on desktop -- a bit of
-      // right padding keeps the name off the bar usernames
+      // bars are in the next column with no gap; this keeps the name off
+      // the bar usernames
       padding-right: 16px;
     }
   }
@@ -947,11 +834,9 @@ h1 {
     font-weight: 700;
     text-transform: uppercase;
     font-size: 1.4rem;
-    // tighter leading so a name that wraps to a second line stays visually
-    // grouped rather than looking double-spaced
+    // tight leading keeps a wrapped name visually grouped
     line-height: 1.2;
-    // long track + artist combos wrap to a second line instead of
-    // getting cut off at the row edge
+    // long names wrap instead of overflowing the row
     overflow-wrap: anywhere;
   }
 
@@ -963,10 +848,8 @@ h1 {
     color: rgba($ink, 0.6);
     margin-top: 3px;
 
-    // "by" is a quiet connector, not part of the artist name -- dim it so
-    // the eye lands on the artist. (this "by" reads visibly now instead of
-    // being screen-reader-only, to set the artist line apart from the bar
-    // usernames below it.)
+    // dimmed so the eye lands on the artist, not the connector. visible
+    // rather than sr-only, to set this line apart from the bar usernames
     .by-prefix {
       opacity: 0.55;
     }
@@ -978,17 +861,16 @@ h1 {
     gap: 0px;
 
     @media (min-width: 640px) {
-      // the row centers its cells; pin the bars to the top so they line up
-      // with the rank/name first line when a long name wraps to two rows
+      // the row centers its cells; pin bars to the top so they line up with
+      // the first line when a name wraps
       align-self: flex-start;
     }
   }
 
   .bar-line {
     display: grid;
-    // username column shrinks to fit the longer username (set as
-    // --username-col-width on .rows, capped at 100px) -- the bar itself
-    // (1fr) and the play count (auto) take whatever's left
+    // username column is measured in MatchTable and set as
+    // --username-col-width; bar (1fr) and count (auto) take the rest
     grid-template-columns: minmax(0, var(--username-col-width, 100px)) 1fr auto;
     align-items: center;
     gap: 12px;
@@ -999,25 +881,21 @@ h1 {
     font-size: 0.7rem;
     font-weight: 600;
     color: rgba($ink, 0.55);
-    // mobile: left-aligned so the longer username sits flush against the
-    // row's left edge -- any slack from a shorter username (or from ch
-    // rounding) falls after the text instead, right before the bar
+    // mobile: flush left against the row edge, slack falls before the bar
     text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 
     @media (min-width: 640px) {
-      // desktop: bars sit in their own column already indented past
-      // rank+name, so right-aligning here keeps the username snug against
-      // the bar instead of against that column's own left edge
+      // desktop: the column is already indented, so right-align keeps the
+      // username snug against the bar
       text-align: right;
     }
   }
 
-  // named .bar-track (not just .track) to avoid reading like the domain
-  // noun "track" (a song) in the tracks panel -- this is the bar-chart
-  // groove behind .fill, unrelated to the shared-track data it displays
+  // "bar-track" as in the groove behind .fill -- not a song, despite
+  // sitting in the tracks panel
   .bar-track {
     position: relative;
     height: 10px;
@@ -1046,9 +924,8 @@ h1 {
     font-family: 'SUSE Mono', monospace;
     font-weight: 600;
     font-size: 0.8rem;
-    // sized (in MatchTable) to the widest count in the list, so the counts
-    // stay left-aligned with the widest one flush to the section's right
-    // edge -- rather than a fixed 46px that left a gap after short numbers
+    // measured in MatchTable to fit the widest count in the list, so counts
+    // stay left-aligned with the widest flush to the section's right edge
     min-width: var(--plays-col-width, 46px);
     color: $ink;
   }
@@ -1084,10 +961,8 @@ h1 {
   }
 }
 
-// the artists panel gets the dark (navy) treatment; the tracks panel
-// keeps the light look. added as a second class on .match-table
+// dark treatment, added as a second class on .match-table
 .match-table--dark {
-  // black background, matching the mockup's dark section (not navy)
   background: $ink;
   color: $soft-blue;
   border-color: $ink;
@@ -1116,9 +991,8 @@ h1 {
   }
 
   .bar-username {
-    // neutral grey instead of soft-blue so the usernames read as axis
-    // labels, distinct from the soft-blue artist name on the tracks rows
-    // right above them. ~6.7:1 on $ink, clears WCAG AA for small text.
+    // neutral grey, not soft-blue, so these read as axis labels rather
+    // than another artist name. 6.7:1 on $ink
     color: #9aa0ad;
   }
 
@@ -1151,9 +1025,8 @@ h1 {
 // ============================================================
 
 .site-footer {
-  // full-bleed, same trick as .shared-list-panel -- sits flush against the
-  // last shared-list panel above it, both at $ink, so the panel's own
-  // border blends away and the footer reads as a continuation of it
+  // full-bleed like .shared-list-panel, and both are $ink, so the panel
+  // above blends into this and the footer reads as a continuation
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -1212,8 +1085,7 @@ h1 {
     display: flex;
     align-items: flex-end;
     gap: 14px;
-    // 12 blocks of 8px (one segment + one gap) -- a whole number of blocks,
-    // so every bar's rise/fall can land exactly on a block edge
+    // 12 blocks of 8px, so every bar's rise/fall lands on a block edge
     height: 96px;
 
     span {
@@ -1232,14 +1104,11 @@ h1 {
       animation-name: equalize;
       animation-duration: 1.1s;
       animation-iteration-count: infinite;
-      // negative delays start every bar mid-wave, avoiding the
-      // initial full-height freeze while positive delays elapse
+      // negative delays start each bar mid-wave, avoiding the full-height
+      // freeze while a positive delay elapses
       animation-delay: -1.1s;
-      // each bar's peak is a whole number of 8px blocks above the shared
-      // 24px (3-block) trough, and steps() is set to that same block
-      // count -- so every step is exactly one block (8px), never landing
-      // mid-block the way evenly-spaced steps over an arbitrary height
-      // range would
+      // --peak is a whole number of 8px blocks above the 24px trough, and
+      // steps() matches that count, so each step is exactly one block
       --peak: 64px;
       animation-timing-function: steps(5);
     }
@@ -1284,7 +1153,7 @@ h1 {
 @keyframes equalize {
   0%,
   100% {
-    // 3 blocks (8px each) -- the shared trough every bar returns to
+    // the shared trough every bar returns to: 3 blocks
     height: 24px;
   }
   50% {
