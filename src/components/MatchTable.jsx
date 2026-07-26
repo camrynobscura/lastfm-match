@@ -137,7 +137,14 @@ const MatchTable = ({
   const headingId = `${heading.replace(/\s+/g, '-')}-heading`
 
   return (
-    <div className='shared-list-panel' ref={scrollRef}>
+    <div
+      className={
+        isTracks
+          ? 'shared-list-panel shared-list-panel--tracks'
+          : 'shared-list-panel'
+      }
+      ref={scrollRef}
+    >
       <div className={dark ? 'match-table match-table--dark' : 'match-table'}>
         <div className='match-table-lists'>
           <section aria-labelledby={headingId}>

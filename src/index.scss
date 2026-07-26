@@ -801,6 +801,15 @@ h1 {
   }
 }
 
+// the tracks panel is the last thing before the footer, and the footer
+// shares its $ink background so the two read as one continuous dark run.
+// the extra room goes on the inside as padding -- a bottom margin would
+// open a band of the $soft-blue page background between them and detach
+// the footer. 26px base (see .match-table below) + 22px
+.shared-list-panel--tracks .match-table {
+  padding-bottom: 48px;
+}
+
 // the bordered box holding each list; always visible, no top-level toggle
 .match-table {
   border: 2px solid $ink;
