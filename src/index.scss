@@ -461,6 +461,24 @@ h1 {
     }
   }
 
+  // each listener links to their own Last.fm profile. same treatment as the
+  // row names: the username is the whole link, so the underline is a
+  // hover/focus affordance rather than a resting decoration
+  .names-caption a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      text-decoration-color: $orange;
+      text-underline-offset: 4px;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
   .pairing-x {
     color: $orange;
     margin: 0 8px;
@@ -862,6 +880,27 @@ h1 {
     }
   }
 
+  // artist and track names link to their Last.fm catalogue pages. the whole
+  // name is the link, so there's no adjacent body text to tell it apart
+  // from -- no resting underline is needed, and 1000 underlined rows would
+  // be unreadable. the underline appears on hover and focus instead
+  .row-name a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      text-decoration-color: $orange;
+      text-underline-offset: 3px;
+    }
+
+    // $ink here for the light table; .match-table--dark overrides it below,
+    // since no one ring colour clears 3:1 on both surfaces
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
   .bars {
     grid-area: bars;
     display: grid;
@@ -995,6 +1034,12 @@ h1 {
 
   .row-name .secondary {
     color: rgba($soft-blue, 0.85);
+  }
+
+  // the panel background is $ink here, so the ink ring from the light table
+  // would be invisible
+  .row-name a:focus-visible {
+    @include focus-ring($soft-white);
   }
 
   .bar-username {

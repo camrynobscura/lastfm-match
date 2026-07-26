@@ -2,6 +2,7 @@ import CommonArtistsDescription from './CommonArtistsDescription'
 import CommonTracksDescription from './CommonTracksDescription'
 import LoadingIndicator from './LoadingIndicator'
 import ScoreDisplay from './ScoreDisplay'
+import { userUrl } from '../lib/lastfmLinks'
 
 const MatchDescription = ({
   score,
@@ -48,9 +49,23 @@ const MatchDescription = ({
             <ScoreDisplay score={score} />
           </div>
           <div className='match-copy'>
+            {/* the two listeners link to their own Last.fm profiles */}
             <p className='names-caption'>
-              {staticUsernameOne} <span className='pairing-x'>×</span>{' '}
-              {staticUsernameTwo}
+              <a
+                href={userUrl(staticUsernameOne)}
+                target='_blank'
+                rel='noreferrer'
+              >
+                {staticUsernameOne}
+              </a>{' '}
+              <span className='pairing-x'>×</span>{' '}
+              <a
+                href={userUrl(staticUsernameTwo)}
+                target='_blank'
+                rel='noreferrer'
+              >
+                {staticUsernameTwo}
+              </a>
             </p>
             <div className='match-lists'>
               {/* if you have no tracks or artists in common */}

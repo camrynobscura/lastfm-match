@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { parseTrackKey } from '../lib/compatibility'
 import { getDisplayPage } from '../lib/pagination'
+import { artistUrl, trackUrl } from '../lib/lastfmLinks'
 
 const PAGE_SIZE = 10
 // matches .bar-username's font in index.scss -- ch units approximate a
@@ -52,17 +53,31 @@ const SharedRow = ({
   staticUsernameOne,
   staticUsernameTwo,
 }) => {
+  // a track row links to the track's page, an artist row to the artist's.
+  // null when the name is missing, in which case the plain text renders
+  const href = artist ? trackUrl(artist, name) : artistUrl(name)
+
   return (
     <div className='row'>
       <div className='rank'>{String(rank).padStart(2, '0')}.</div>
       <div className='row-name'>
         <div className='primary' title={name}>
-          {name}
+          {href ? (
+            <a href={href} target='_blank' rel='noreferrer'>
+              {name}
+            </a>
+          ) : (
+            name
+          )}
         </div>
         {artist && (
           <div className='secondary'>
+            {/* the prefix stays outside the link so only the name is the
+                target, and the link text reads as just the artist */}
             <span className='by-prefix'>by </span>
-            {artist}
+            <a href={artistUrl(artist)} target='_blank' rel='noreferrer'>
+              {artist}
+            </a>
           </div>
         )}
       </div>
