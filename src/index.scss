@@ -295,15 +295,28 @@ h1 {
 
   .vs-x {
     // hidden in the stacked (column) layout -- it doesn't read well
-    // sitting between two full-width fields on mobile
+    // sitting between two full-width fields on mobile. becomes flex at the
+    // 560px breakpoint below
     display: none;
+    align-items: center;
+    justify-content: center;
     justify-self: center;
+    // .field-row is align-items: end, so this box bottom-aligns with the
+    // input boxes -- matching their 50px height makes it overlay them
+    // exactly, and centring inside it centres the glyph on the field
+    // rather than on the whole column (which is taller, by the label)
+    height: 50px;
+    // align-items centres the *line box*; U+00D7 is drawn on the font's
+    // math axis, so its ink still sits ~2px low inside that box. with the
+    // global border-box, this padding shrinks the content box to 46px and
+    // lifts the centred glyph by half of it -- correcting the ink without
+    // leaving the flow the way a relative offset would
+    padding-bottom: 4px;
     font-family: $display-font;
     font-weight: 700;
     font-size: 2.2rem;
     color: $orange;
     line-height: 1;
-    padding-bottom: 6px;
   }
 
   .field {
@@ -466,7 +479,7 @@ h1 {
     }
 
     .vs-x {
-      display: block;
+      display: flex;
     }
   }
 }
@@ -514,6 +527,18 @@ h1 {
   .pairing-x {
     color: $orange;
     margin: 0 8px;
+    // U+00D7 is drawn on the font's math axis (positioned for sitting
+    // between digits), which puts its optical centre ~0.04em below the
+    // centre of the cap-height letters either side of it. nudge it back up
+    // so it reads as centred against the usernames. em, not px, so it
+    // tracks the caption's clamp()ed font-size.
+    //
+    // relative offset rather than vertical-align: raising an inline box
+    // grows the line box around it, which pushed the caption 35.2 -> 36.6px
+    // tall and shifted everything below it down. relative positioning is
+    // applied after layout, so the glyph moves and nothing else does
+    position: relative;
+    top: -0.04em;
   }
 }
 
