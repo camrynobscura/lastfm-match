@@ -13,13 +13,41 @@ const ALLOWED_METHODS = new Set(['user.gettopartists', 'user.gettoptracks'])
 
 const LIMIT = 500
 
+// The API terms require caching "in accordance with the HTTP headers sent
+// with web service responses", so Last.fm's own Cache-Control is forwarded
+// when it sends one. When it doesn't, this is the fallback: top-artist and
+// top-track charts move slowly, and a repeat search within a few minutes
+// does not need a fresh round trip.
+const DEFAULT_CACHE = 'public, max-age=300'
+// Errors are held only briefly -- long enough to absorb a retry loop, short
+// enough that a user who fixes a typo (or a suspended key that gets
+// restored) isn't served the failure for minutes afterwards.
+const ERROR_CACHE = 'public, max-age=30'
+
+// Netlify's CDN keys on the full URL, and method/user/period are all in the
+// query string, so identical searches collapse onto one upstream request
+// instead of one per visitor. This matters more than usual here: every
+// request to Last.fm now leaves from Netlify's egress IPs rather than each
+// visitor's, so without an edge cache the whole site looks like a single
+// very busy client to any per-origin rate limit.
+const cacheHeaders = (upstreamCacheControl, ok) => {
+  const value = upstreamCacheControl || (ok ? DEFAULT_CACHE : ERROR_CACHE)
+  return {
+    'content-type': 'application/json',
+    'cache-control': value,
+    'netlify-cdn-cache-control': value,
+  }
+}
+
 // errors are shaped like Last.fm's own ({ message, error }) so they flow
 // through describeUserError untouched. code 10 already maps to friendly
 // copy about the API key; codes it doesn't know fall back to `message`.
 const lastfmShapedError = (message, error, status) =>
   new Response(JSON.stringify({ message, error }), {
     status,
-    headers: { 'content-type': 'application/json' },
+    // never cached: these describe the state of this request or this
+    // deployment (a bad method, a missing key), not anything about Last.fm
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   })
 
 export default async (req) => {
@@ -53,7 +81,7 @@ export default async (req) => {
     // generic failure.
     return new Response(await res.text(), {
       status: res.status,
-      headers: { 'content-type': 'application/json' },
+      headers: cacheHeaders(res.headers.get('cache-control'), res.ok),
     })
   } catch {
     return lastfmShapedError('Could not reach Last.fm. Try again.', 8, 502)
