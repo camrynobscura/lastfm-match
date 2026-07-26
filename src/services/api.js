@@ -1,19 +1,21 @@
-const API_KEY = import.meta.env.VITE_REACT_APP_LASTFM_API_KEY
+// The browser talks to our own Netlify function, never to Last.fm. The
+// API key lives server-side (see netlify/functions/lastfm.js), so nothing
+// here carries a credential and none ends up in the bundle.
+//
+// Locally this needs `netlify dev` rather than `npm run dev` -- Vite alone
+// doesn't serve functions, so this path would 404.
+const ENDPOINT = '/.netlify/functions/lastfm'
 
-export const getTopArtists = async (user, time) => {
-  const response = await fetch(
-    `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${user}&api_key=${API_KEY}&format=json&period=${time}&limit=500`
-  )
-  const data = await response.json()
+const call = async (method, user, period) => {
+  const params = new URLSearchParams({ method, user, period })
+  const response = await fetch(`${ENDPOINT}?${params}`)
 
-  return data
+  // parsed regardless of status, same as when this called Last.fm
+  // directly: a missing user comes back as 404 *with* a JSON error body,
+  // and describeUserError reads that body rather than the status
+  return response.json()
 }
 
-export const getTopTracks = async (user, time) => {
-  const response = await fetch(
-    `https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${user}&api_key=${API_KEY}&format=json&period=${time}&limit=500`
-  )
-  const data = await response.json()
+export const getTopArtists = (user, time) => call('user.gettopartists', user, time)
 
-  return data
-}
+export const getTopTracks = (user, time) => call('user.gettoptracks', user, time)

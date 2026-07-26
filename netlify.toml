@@ -1,13 +1,17 @@
 # Netlify build + caching config.
 #
-# VITE_REACT_APP_LASTFM_API_KEY is NOT set here -- it belongs in the
-# Netlify UI (Site settings -> Environment variables). Vite substitutes it
-# into the bundle at build time, so it has to exist when the build runs,
-# and committing it here would put it in git.
+# LASTFM_API_KEY is NOT set here -- it belongs in the Netlify UI (Site
+# configuration -> Environment variables), since anything in this file is
+# committed to git. No VITE_ prefix on purpose: Vite only inlines VITE_*
+# into the client bundle, so the unprefixed name can't reach the browser.
+# Only the function (netlify/functions/lastfm.js) reads it.
 
 [build]
   command = "npm run build"
   publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
 
 [build.environment]
   # Vite 7 needs Node 20.19+ / 22.12+; pin it so the build doesn't inherit

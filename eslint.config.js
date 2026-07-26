@@ -26,4 +26,13 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Netlify functions run on the server, not in the browser -- they get
+    // process.env (which is how the API key stays out of the bundle) and
+    // none of the React rules apply
+    files: ['netlify/functions/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

@@ -8,7 +8,11 @@ Last.fm Match is a React + Vite single-page app that compares two Last.fm users'
 
 ## Commands
 
-- `npm run dev` — start the Vite dev server with HMR.
+- `npx netlify dev` — **use this, not `npm run dev`.** Runs Vite *and* the
+  Netlify function together on one origin (:8888). `npm run dev` serves only
+  Vite, so `/.netlify/functions/lastfm` 404s and every search fails.
+- `npm run dev` — Vite alone. Fine for pure styling work, useless for anything
+  that fetches.
 - `npm run build` — production build.
 - `npm run preview` — preview the production build locally.
 - `npm run lint` — run ESLint over the project.
@@ -18,11 +22,19 @@ Last.fm Match is a React + Vite single-page app that compares two Last.fm users'
 ## Environment variables
 
 Requires a `.env` file (not committed) with:
-- `VITE_REACT_APP_LASTFM_API_KEY` — Last.fm API key, used in `src/services/api.js`.
+- `LASTFM_API_KEY` — Last.fm API key, read **only** by
+  `netlify/functions/lastfm.js`.
+
+The missing `VITE_` prefix is deliberate and load-bearing: Vite inlines only
+`VITE_*` variables into the client bundle, so an unprefixed name cannot reach
+the browser even if something tried to read it. Renaming it back would put the
+key in the bundle for anyone to lift. The same name goes in the Netlify UI
+(Site configuration → Environment variables) for deploys.
 
 ## Architecture
 
-- `src/services/api.js` — thin fetch wrappers around the Last.fm API (`user.gettopartists`, `user.gettoptracks`), returning raw parsed JSON responses.
+- `netlify/functions/lastfm.js` — server-side proxy, and the only place the API key exists. Allowlists the two methods the app uses (otherwise the endpoint would be an open proxy to all of Last.fm), then passes Last.fm's status *and* body straight through — a missing user comes back as HTTP 404 carrying `{ message, error: 6 }`, and the app needs that body to name the bad username. Its own failures are shaped the same way so they flow through `describeUserError` unchanged.
+- `src/services/api.js` — thin fetch wrappers around **the function**, not Last.fm; the browser never contacts Last.fm and carries no credential. Parses the response regardless of HTTP status, for the 404-with-a-body reason above.
 - `src/lib/compatibility.js` — pure, unit-tested scoring functions: `toPlaycountMap` (item list → `{ name: playcount }` map; tracks are keyed as `"Artist :: Track"`), `getScore` (for shared items, sums `min(shareOfListeningA, shareOfListeningB)` — a "boost" score, not Jaccard, so scores aren't dragged down by each person's total library size), `getShared` (ranked shared-item list), and `musicCompatibility` (combines artist score at 60% weight and track score at 40% weight, since track overlap is rarer, then stretches the result via a fourth root into a friendlier 0-100 range).
 - `src/lib/lastfmErrors.js` — `describeUserError`: maps the Last.fm API's error-shaped success responses (HTTP 200 with an `error`/`message` field in the body — checked via `data.artists.error`/`data.tracks.error` rather than HTTP status) to friendly copy, naming the specific bad username for a "not found" (code 6) error.
 - `src/hooks/useMatchComparison.js` — `useMemo`-based hook wrapping the two lib modules above: given both users' fetched data, returns `{ score, sharedArtists, sharedTracks, error, invalidField }` in one synchronous pass (no intermediate render where the shared lists lag behind the score).
