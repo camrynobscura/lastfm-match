@@ -1,0 +1,38 @@
+# Netlify build + caching config.
+#
+# VITE_REACT_APP_LASTFM_API_KEY is NOT set here -- it belongs in the
+# Netlify UI (Site settings -> Environment variables). Vite substitutes it
+# into the bundle at build time, so it has to exist when the build runs,
+# and committing it here would put it in git.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 7 needs Node 20.19+ / 22.12+; pin it so the build doesn't inherit
+  # an older default and fail confusingly
+  NODE_VERSION = "22"
+
+# Vite fingerprints these filenames with a content hash, so a change to the
+# file changes its URL. That makes a stale cache impossible and lets repeat
+# visitors re-download nothing but the HTML.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Same reasoning, but by hand: these filenames aren't hashed, so they're
+# cached for a week rather than forever -- long enough to help, short
+# enough that replacing a font doesn't strand anyone.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# The HTML must never be cached hard: it's what points at the hashed
+# assets, so a stale copy would keep serving an old build.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
