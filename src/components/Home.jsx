@@ -238,7 +238,10 @@ const Home = () => {
   return (
     <>
       <header className='head'>
-        <h1>
+        {/* the period is part of the brand, but read aloud it lands as
+            "last period fm match". aria-label supplies the spoken form; the
+            visible text is unchanged. keep the two in sync if either moves */}
+        <h1 aria-label='Last fm Match'>
           Last<span className='dot'>.</span>fm Match
         </h1>
         <p className='app-description'>
