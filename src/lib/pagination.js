@@ -1,11 +1,9 @@
-// returns the currently visible page of shared items, whether there's more
-// to reveal, and the max playcount across the whole list (not just the
-// visible page) -- so bars already on screen don't rescale as more rows get
-// revealed.
+// the visible page of shared items, whether more remain, and the max
+// playcount across the *whole* list -- so bars already on screen don't
+// rescale as more rows appear.
 //
-// the list isn't capped: the API fetches at most 500 items per user, so the
-// overlap can't exceed that, and "see more" reveals PAGE_SIZE rows at a
-// time -- the DOM only grows as far as someone actually clicks.
+// uncapped: the API returns at most 500 items per user, and "see more"
+// reveals a page at a time, so the DOM grows only as far as someone clicks.
 export function getDisplayPage(items, visibleCount) {
   const visible = items.slice(0, visibleCount)
   const hasMore = visibleCount < items.length

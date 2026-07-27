@@ -14,14 +14,10 @@ const EMPTY_RESULT = {
   invalidField: null,
 }
 
-// derives the compatibility score, shared-item lists, and any "user not
-// found"/api-error state from the two users' fetched data. a pure
-// function of its inputs, so it's a useMemo rather than state kept in
-// sync via a useEffect -- the previous version had a one-paint flash
-// where the shared lists lagged a render behind the data actually
-// landing, since the effect that computed them only ran *after* the
-// render triggered by the submit handler's setUsernameOneData/
-// setUsernameTwoData calls.
+// derives the score, shared-item lists and any error state from the two
+// users' fetched data. a useMemo rather than state synced by an effect:
+// an effect only runs *after* the render the new data triggers, which left
+// a one-paint flash where the shared lists lagged the score.
 export function useMatchComparison(
   usernameOneData,
   usernameTwoData,

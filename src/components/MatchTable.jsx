@@ -4,15 +4,10 @@ import { getDisplayPage } from '../lib/pagination'
 import { artistUrl, trackUrl } from '../lib/lastfmLinks'
 
 const PAGE_SIZE = 10
-// matches .bar-username's font in index.scss -- ch units approximate a
-// monospace font's character width using the "0" glyph, but that glyph
-// runs wider than SUSE Mono's other characters, leaving a gap between the
-// username and the bar. measuring the actual rendered text via canvas gets
-// an exact pixel width instead of an approximation.
+// both match their element's font in index.scss. measured via canvas rather
+// than sized in ch: the "0" glyph ch is based on runs wider than SUSE Mono's
+// other characters, which left a gap between the username and the bar.
 const BAR_USERNAME_FONT = "600 11.2px 'SUSE Mono', monospace"
-// matches .plays's font (0.8rem * 16px root = 12.8px) -- used to size the
-// play-count column to the widest number so counts stay left-aligned in
-// one tidy column, flush to the section's right edge
 const PLAYS_FONT = "600 12.8px 'SUSE Mono', monospace"
 
 let measureCanvasContext
@@ -124,12 +119,10 @@ const MatchTable = ({
     setAnnouncement('')
   }, [items])
 
-  // the button unmounts on the press that exhausts the list, and focus falls
-  // to <body> with it -- so the next Tab restarts from the top of the page,
-  // which after a long list is a long way from where the user was. move it
-  // onto the first row that press revealed instead: that's where the new
-  // content starts, and the row name is a link, so the ring is already
-  // visible there.
+  // the button unmounts on the press that exhausts the list, and focus fell
+  // to <body> with it -- the next Tab then restarted from the top of the
+  // page. move it to the first row that press revealed instead: the row name
+  // is a link, so the focus ring is already visible there.
   useEffect(() => {
     const index = rowToFocus.current
     if (index === null) return
@@ -137,8 +130,8 @@ const MatchTable = ({
 
     const row = rowsRef.current?.querySelectorAll('.row')[index]
     if (!row) return
-    // prefer the link; a row whose name failed to build one isn't focusable
-    // on its own, so make it focusable without adding it to the tab order
+    // a row whose name built no link isn't focusable on its own; tabIndex -1
+    // makes it focusable without adding it to the tab order
     const target = row.querySelector('a') ?? row
     if (target === row) row.tabIndex = -1
     target.focus()

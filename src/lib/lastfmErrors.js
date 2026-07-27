@@ -27,10 +27,9 @@ export function describeUserError(data, username) {
 
 // combines both listeners' errors into the one line the error box shows.
 //
-// the dedupe matters more than it looks: a fault that isn't about either
-// username -- a suspended or invalid key, a rate limit, Last.fm being down
-// -- fails both requests with the same code, so joining the two texts
-// blindly printed the same sentence twice.
+// the dedupe is the point: a fault that isn't about either username -- a
+// bad key, a rate limit, Last.fm down -- fails both requests with the same
+// code, and joining the texts blindly printed the sentence twice.
 export function combineUserErrors(errorOne, errorTwo, usernameOne, usernameTwo) {
   if (!errorOne && !errorTwo) return null
 

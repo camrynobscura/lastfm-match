@@ -73,13 +73,11 @@ const Home = () => {
     staticUsernameTwo,
   )
 
-  // a submit-time error (empty field, network failure) takes precedence;
-  // otherwise fall back to whatever the fetched data itself says. while a
-  // new search is in flight, hide any previous error immediately -- once
-  // staticUsernameOne/Two update to the new username, derivedError would
-  // otherwise briefly recombine the *previous* fetch's stale
-  // usernameOneData/usernameTwoData with the *new* username text, showing
-  // a stale error message before the new fetch has even resolved.
+  // a submit-time error (empty field, network failure) wins; otherwise use
+  // what the fetched data says. while a search is in flight, hide the
+  // previous error: once staticUsernameOne/Two update, derivedError would
+  // briefly pair the *old* fetch's data with the *new* username text and
+  // show a stale message before the new fetch resolves.
   const error = isLoading ? null : submitError || derivedError
   // which username field(s) the current error is about ('one' | 'two' |
   // 'both' | null) -- drives aria-invalid/aria-describedby on the inputs.
@@ -87,19 +85,16 @@ const Home = () => {
   // failure), so neither input gets marked invalid.
   const invalidField = isLoading ? null : submitInvalidField || derivedInvalidField
 
-  // what the live region below announces, across the whole flow: the
-  // waiting state first, then the outcome. one always-mounted region rather
-  // than one per state -- a region that appears together with its text is
-  // announced unreliably (LoadingIndicator used to own this and was silent
-  // in VoiceOver). the announced wording is its own thing, not the
-  // indicator's visible copy -- see LOADING_ANNOUNCEMENT above.
+  // what the live region below announces across the whole flow: waiting
+  // first, then the outcome. one always-mounted region rather than one per
+  // state -- a region that appears together with its text is announced
+  // unreliably (LoadingIndicator owned this once, and was silent in
+  // VoiceOver).
   //
-  // the summary is composed from the score/list values rather than read off
-  // the rendered results: ScoreDisplay animates its number from 0 up to the
-  // final score over 2s, so a region wrapping the visible score would fire
-  // on every one of those ~120 frames. counts match the visible "shared
-  // artists (N)" headings. stays empty on error -- ErrorMessage's
-  // role="alert" announces that case.
+  // composed from the score/list values, not read off the rendered results:
+  // ScoreDisplay animates its number over 2s, so a region wrapping the
+  // visible score would fire on every one of those ~120 frames. stays empty
+  // on error -- ErrorMessage's role="alert" covers that case.
   let statusMessage = ''
   if (isLoading) {
     statusMessage = LOADING_ANNOUNCEMENT
@@ -171,19 +166,17 @@ const Home = () => {
     }
   }
 
-  // after a failed submit, put the cursor in the field that needs fixing.
-  // the error text says what's wrong, but focus would otherwise stay on the
-  // Match button -- so someone who can't see the form knows what to fix
-  // without knowing where it is. landing on the input reads out its label
-  // and invalid state, which confirms the target.
+  // after a failed submit, put the cursor in the field that needs fixing --
+  // focus would otherwise sit on the Match button, so someone who can't see
+  // the form knows what to fix but not where it is. landing on the input
+  // reads its label and invalid state.
   //
-  // keyed on submitCount so it fires exactly once per submit (including a
-  // repeat of the same error) and never on an unrelated re-render, which
-  // would yank focus out of whatever field was being typed in.
+  // keyed on submitCount so it fires once per submit (including a repeat of
+  // the same error) and never on an unrelated re-render, which would yank
+  // focus out of a field being typed in.
   //
-  // submitInvalidField only, never the derived one: "user not found" lands
-  // seconds later, once the fetch resolves, and grabbing focus at that
-  // point would interrupt whatever the user had moved on to.
+  // submitInvalidField only: "user not found" lands seconds later when the
+  // fetch resolves, and taking focus then would interrupt the user.
   useEffect(() => {
     if (!submitInvalidField) return
     // 'both' -> the first field, as the first thing needing attention
@@ -194,12 +187,9 @@ const Home = () => {
     target?.focus()
   }, [submitCount, submitInvalidField])
 
-  // nudge the loading box into view the moment loading starts, so the
-  // equalizer bars are visible right away. goes a bit past just bringing
-  // the box's bottom edge flush with the viewport -- scrollIntoView has no
-  // concept of "and then a little more," so this computes the scroll
-  // distance by hand instead: how far below the fold the box's bottom
-  // edge currently sits, plus a fixed overshoot.
+  // nudge the loading box into view as loading starts. scrollIntoView has no
+  // concept of "and then a little more", so the distance is computed by
+  // hand: how far below the fold the box's bottom edge sits, plus overshoot.
   useEffect(() => {
     if (isLoading) {
       const el = scoreRef.current

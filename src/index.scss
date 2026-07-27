@@ -21,13 +21,11 @@ $display-font: 'Barlow Condensed', sans-serif;
 // ============================================================
 
 // keyboard focus indicator. an outline, not a border-color swap: it draws
-// outside the resting border rather than repainting it, and forced-colors
-// mode honors outlines where it overrides border-color.
+// outside the resting border and survives forced-colors mode.
 //
-// the color has to follow the surface -- no single value clears WCAG
-// 1.4.11's 3:1 everywhere. $electric-blue only works on the form card
-// (2.98:1 on the page background, so it can't be the default), $ink on
-// other light surfaces, $soft-white on the $ink panels and footer.
+// the colour follows the surface -- nothing clears WCAG 1.4.11's 3:1
+// everywhere. $electric-blue only on the form card (2.98:1 on the page
+// background), $ink on other light surfaces, $soft-white on the $ink panels.
 @mixin focus-ring($color: $ink) {
   outline: 3px solid $color;
   outline-offset: 2px;
@@ -335,10 +333,10 @@ h1 {
       color: rgba($ink, 0.65);
     }
 
-    // Chromium paints autofilled fields grey-on-white with an internal
-    // !important rule that background-color can't beat -- a big inset
-    // shadow fills the box instead, and text-fill-color restores the text
-    // (autofill overrides `color`, not text-fill-color)
+    // Chromium paints autofilled fields grey-on-white via an internal
+    // !important rule background-color can't beat: an inset shadow fills the
+    // box, and text-fill-color restores the text (autofill overrides
+    // `color`, not text-fill-color)
     &:-webkit-autofill,
     &:-webkit-autofill:hover,
     &:-webkit-autofill:focus,
@@ -482,11 +480,9 @@ h1 {
   .pairing-x {
     color: $orange;
     margin: 0 8px;
-    // U+00D7 sits on the font's math axis, ~0.04em below the centre of the
-    // caps either side. em so it tracks the clamp()ed font-size.
-    //
-    // relative, not vertical-align: raising an inline box grows the line
-    // box and would push everything below it down
+    // U+00D7 sits ~0.04em below the centre of the caps either side. em so it
+    // tracks the clamp()ed font-size, and relative rather than
+    // vertical-align, which would grow the line box and push the rest down
     position: relative;
     top: -0.04em;
   }
@@ -516,10 +512,9 @@ h1 {
   }
 
   .match-copy {
-    // all four guard against a long unbreakable artist/track name blowing
-    // past the card edge: min-width:0 defeats flex's min-width:auto,
-    // width+box-sizing stop it shrink-wrapping in the mobile column, and
-    // overflow-wrap (inherited, so it covers the children too) breaks it
+    // all four keep a long unbreakable name inside the card: min-width:0
+    // defeats flex's min-width:auto, width+box-sizing stop it shrink-wrapping
+    // in the mobile column, overflow-wrap (inherited) breaks the word
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
@@ -869,21 +864,20 @@ h1 {
     color: rgba($ink, 0.6);
     margin-top: 3px;
 
-    // dimmed so the eye lands on the artist, not the connector. visible
-    // rather than sr-only, to set this line apart from the bar usernames
+    // dimmed so the eye lands on the artist, not the connector -- visible
+    // rather than sr-only to set it apart from the bar usernames.
     //
-    // this multiplies with the alpha already on .secondary's color, so it
-    // dims further than it looks: 0.55 landed the pair at 3.69:1 on the
-    // dark panel, under the 4.5:1 this size needs. 0.636 is the floor
+    // multiplies with the alpha already on .secondary's colour: 0.55
+    // measured 3.69:1 here, under the 4.5:1 this size needs. 0.636 is
+    // the floor, 0.7 gives 5.16:1
     .by-prefix {
       opacity: 0.7;
     }
   }
 
-  // artist and track names link to their Last.fm catalogue pages. the whole
-  // name is the link, so there's no adjacent body text to tell it apart
-  // from -- no resting underline is needed, and 1000 underlined rows would
-  // be unreadable. the underline appears on hover and focus instead
+  // artist and track names link to their Last.fm pages. the whole name is
+  // the link, with no adjacent text to tell it apart from, so the underline
+  // is a hover/focus affordance -- 1000 underlined rows would be unreadable
   .row-name a {
     color: inherit;
     text-decoration: none;
@@ -1174,10 +1168,9 @@ h1 {
       animation-name: equalize;
       animation-duration: 1.1s;
       animation-iteration-count: infinite;
-      // negative delays start each bar mid-wave, avoiding the full-height
-      // freeze while a positive delay elapses
-      // the 9 delays are one cycle split evenly (1.1s / 9), so the bars are
-      // spread across the wave instead of clumping
+      // negative delays start each bar mid-wave -- a positive one would
+      // freeze it at full height first. spaced one cycle / 9 apart so the
+      // bars spread across the wave instead of clumping
       animation-delay: -1.1s;
       // --peak is in blocks above the 3-block trough, and steps() is that
       // difference, so each step advances exactly one block
