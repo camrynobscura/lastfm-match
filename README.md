@@ -145,3 +145,8 @@ listener names link back to their Last.fm pages, per the
 [API Terms of Service](https://www.last.fm/api/tos).
 
 Built by [Camryn](https://www.camrynpearson.com/).
+
+## License
+
+[MIT](LICENSE). The licence covers this code only — music data remains subject
+to Last.fm's own terms.

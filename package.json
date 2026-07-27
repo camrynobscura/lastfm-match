@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Compare two Last.fm listeners' music taste and see the artists and tracks they share.",
+  "license": "MIT",
   "homepage": "https://lastfm-match.netlify.app/",
   "repository": {
     "type": "git",
