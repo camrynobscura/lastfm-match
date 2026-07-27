@@ -15,22 +15,16 @@ const ERROR_ID = 'match-error'
 const countPhrase = (count, noun) =>
   count === 0 ? `no ${noun}s` : `${count} ${noun}${count === 1 ? '' : 's'}`
 
-// deliberately shorter than the loading box's visible copy ("finding your
-// compatibility score..."). role="status" is polite, so it waits for a gap
-// and then reads to the end -- a long sentence still being spoken when the
-// results arrive pushes the summary, the message that actually matters, to
-// the back of the queue. searches often finish inside that sentence.
+// shorter than the loading box's visible copy on purpose: role="status" is
+// polite, so it reads to the end, and a long sentence still being spoken
+// when results arrive delays the summary that actually matters
 const LOADING_ANNOUNCEMENT = 'Loading'
 
 const Home = () => {
-  // the score/description section -- what we scroll into view once
-  // loading starts
+  // scroll targets (the score box as loading starts, the shared-artists
+  // panel once results land) and focus targets after a failed submit
   const scoreRef = useRef(null)
-  // the shared-artists panel -- scrolled to (once results land) so its
-  // top edge sits at the bottom of the viewport
   const sharedArtistsRef = useRef(null)
-  // the two username inputs -- focused after a failed submit so the field
-  // that needs fixing is where the cursor lands
   const usernameOneRef = useRef(null)
   const usernameTwoRef = useRef(null)
 
@@ -47,17 +41,15 @@ const Home = () => {
   let [usernameOneData, setUsernameOneData] = useState()
   let [usernameTwoData, setUsernameTwoData] = useState()
 
-  // errors set directly by handleSubmit (empty fields, network/generic
-  // failures) -- not derivable from usernameOneData/usernameTwoData, so
-  // these stay as real state. "user not found" errors, by contrast, are
-  // derived from the fetched data and come from useMatchComparison below.
+  // errors handleSubmit sets itself (empty fields, network failures). they
+  // can't be derived from the fetched data, unlike "user not found", which
+  // comes from useMatchComparison below.
   const [submitError, setSubmitError] = useState(null)
   const [submitInvalidField, setSubmitInvalidField] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
-  // bumped on every submit, and handed to ErrorMessage as its key. two
-  // submits that produce the same error message would otherwise leave the
-  // DOM untouched, so the error box never re-announces (see ErrorMessage)
+  // handed to ErrorMessage as its key: two submits producing the same
+  // message would otherwise leave the DOM untouched, and never re-announce
   const [submitCount, setSubmitCount] = useState(0)
 
   const {
@@ -79,22 +71,17 @@ const Home = () => {
   // briefly pair the *old* fetch's data with the *new* username text and
   // show a stale message before the new fetch resolves.
   const error = isLoading ? null : submitError || derivedError
-  // which username field(s) the current error is about ('one' | 'two' |
-  // 'both' | null) -- drives aria-invalid/aria-describedby on the inputs.
-  // null means the error isn't about a specific field (e.g. a network
-  // failure), so neither input gets marked invalid.
+  // 'one' | 'two' | 'both' | null -- drives aria-invalid/aria-describedby.
+  // null means no specific field is at fault (e.g. a network failure)
   const invalidField = isLoading ? null : submitInvalidField || derivedInvalidField
 
-  // what the live region below announces across the whole flow: waiting
-  // first, then the outcome. one always-mounted region rather than one per
-  // state -- a region that appears together with its text is announced
-  // unreliably (LoadingIndicator owned this once, and was silent in
-  // VoiceOver).
+  // what the live region announces across the whole flow. one always-mounted
+  // region, not one per state: a region appearing together with its text is
+  // announced unreliably (LoadingIndicator owned this once, and was silent).
   //
-  // composed from the score/list values, not read off the rendered results:
-  // ScoreDisplay animates its number over 2s, so a region wrapping the
-  // visible score would fire on every one of those ~120 frames. stays empty
-  // on error -- ErrorMessage's role="alert" covers that case.
+  // composed from the values, not read off the rendered results -- wrapping
+  // the visible score would fire on every frame of its 2s count-up. empty on
+  // error, which ErrorMessage's role="alert" already covers.
   let statusMessage = ''
   if (isLoading) {
     statusMessage = LOADING_ANNOUNCEMENT
@@ -136,14 +123,12 @@ const Home = () => {
     setIsLoading(true)
 
     try {
-      // make api request with two usernames
       let usernameOneTopArtists = await getTopArtists(usernameOne, timePeriod)
       let usernameTwoTopArtists = await getTopArtists(usernameTwo, timePeriod)
 
       let usernameOneTopTracks = await getTopTracks(usernameOne, timePeriod)
       let usernameTwoTopTracks = await getTopTracks(usernameTwo, timePeriod)
 
-      // save the results
       setUsernameOneData({
         artists: usernameOneTopArtists,
         tracks: usernameOneTopTracks,
@@ -167,16 +152,13 @@ const Home = () => {
   }
 
   // after a failed submit, put the cursor in the field that needs fixing --
-  // focus would otherwise sit on the Match button, so someone who can't see
-  // the form knows what to fix but not where it is. landing on the input
-  // reads its label and invalid state.
+  // focus would otherwise sit on the button, leaving someone who can't see
+  // the form knowing what to fix but not where.
   //
   // keyed on submitCount so it fires once per submit (including a repeat of
-  // the same error) and never on an unrelated re-render, which would yank
-  // focus out of a field being typed in.
-  //
-  // submitInvalidField only: "user not found" lands seconds later when the
-  // fetch resolves, and taking focus then would interrupt the user.
+  // the same error) and never on an unrelated re-render. submitInvalidField
+  // only: "user not found" lands seconds later, and taking focus then would
+  // interrupt whatever the user moved on to.
   useEffect(() => {
     if (!submitInvalidField) return
     // 'both' -> the first field, as the first thing needing attention
@@ -213,13 +195,12 @@ const Home = () => {
     }
   }, [isLoading])
 
-  // once results land, scroll further down so the shared-artists section's
-  // top edge sits right at the bottom of the viewport -- the results card
-  // is fully visible, with the next section peeking in right at the fold.
+  // once results land, scroll so the shared-artists section's top edge sits
+  // at the bottom of the viewport: the results card fully visible, the next
+  // section peeking in at the fold.
   //
-  // matchingArtists/matchingTracks are in the deps so this re-fires if a
-  // resubmit changes the shared lists without changing hasSubmitted/
-  // isLoading/error (e.g. two searches in a row that both succeed).
+  // the shared lists are in the deps so a resubmit that changes them without
+  // changing hasSubmitted/isLoading/error still re-fires this.
   useEffect(() => {
     if (hasSubmitted && !isLoading && !error) {
       const el = sharedArtistsRef.current
@@ -361,9 +342,8 @@ const Home = () => {
             </div>
           </form>
         </div>
-        {/* points at whatever's about to appear below the form -- the
-        loading bars, then the results (or the error box) in its place.
-        only bounces while loading; settles once something's landed */}
+        {/* points at whatever's about to appear below the form. bounces only
+        while loading, then settles once something has landed */}
         {(isLoading || hasSubmitted) && (
           <DownArrow variant='to-results' animate={isLoading} />
         )}
@@ -373,14 +353,9 @@ const Home = () => {
           id={ERROR_ID}
           announceKey={submitCount}
         />
-        {/* the one status region for the whole flow -- neither the loading
-        box nor the results announce anything on their own.
-
-        rendered unconditionally, with only its text swapping: a live
-        region inserted into the DOM at the same moment as its content is
-        announced unreliably across screen reader/browser pairs. role
-        ="status" is aria-live="polite" + aria-atomic, so it waits its turn
-        and reads the whole sentence rather than just the changed part */}
+        {/* the one status region for the whole flow -- nothing else here
+        announces. rendered unconditionally with only its text swapping; see
+        statusMessage above for why it can't mount alongside its content */}
         <p className='sr-only' role='status'>
           {statusMessage}
         </p>
@@ -395,9 +370,8 @@ const Home = () => {
           staticUsernameTwo={staticUsernameTwo}
           scrollRef={error ? null : scoreRef}
         />
-        {/* only when there's actually a shared-list panel below to point at
-        -- bounces 3 times (see .down-arrow-wrap--to-secondary in
-        index.scss) then settles, rather than animating forever */}
+        {/* only when there's a shared-list panel below to point at. bounces
+        3 times then settles (.down-arrow-wrap--to-secondary) */}
         {hasSubmitted &&
           !isLoading &&
           !error &&
