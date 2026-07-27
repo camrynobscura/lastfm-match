@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getTopArtists, getTopTracks } from '../services/api'
 import { useMatchComparison } from '../hooks/useMatchComparison'
+import { describeMatch } from '../lib/resultSummary'
 import DownArrow from './DownArrow'
 import ErrorMessage from './ErrorMessage'
 import Footer from './Footer'
@@ -10,10 +11,6 @@ import MatchTable from './MatchTable'
 // only one ErrorMessage is ever rendered, so a static id is fine -- lets
 // the invalid username field(s) point at it via aria-describedby
 const ERROR_ID = 'match-error'
-
-// "no shared artists" / "1 shared artist" / "14 shared artists"
-const countPhrase = (count, noun) =>
-  count === 0 ? `no ${noun}s` : `${count} ${noun}${count === 1 ? '' : 's'}`
 
 // shorter than the loading box's visible copy on purpose: role="status" is
 // polite, so it reads to the end, and a long sentence still being spoken
@@ -86,10 +83,11 @@ const Home = () => {
   if (isLoading) {
     statusMessage = LOADING_ANNOUNCEMENT
   } else if (hasSubmitted && !error) {
-    statusMessage =
-      `${Math.round(compatibilityScore)}% compatible. ` +
-      `${countPhrase(matchingArtists.length, 'shared artist')}, ` +
-      `${countPhrase(matchingTracks.length, 'shared track')}.`
+    statusMessage = describeMatch(
+      compatibilityScore,
+      matchingArtists.map((artist) => artist.key),
+      matchingTracks.map((track) => track.key),
+    )
   }
 
   const handleSubmit = async (e) => {

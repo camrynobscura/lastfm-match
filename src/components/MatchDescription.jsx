@@ -3,6 +3,7 @@ import CommonTracksDescription from './CommonTracksDescription'
 import LoadingIndicator from './LoadingIndicator'
 import ScoreDisplay from './ScoreDisplay'
 import { userUrl } from '../lib/lastfmLinks'
+import { ARTIST_LIMIT, TRACK_LIMIT } from '../lib/resultSummary'
 
 const MatchDescription = ({
   score,
@@ -15,8 +16,10 @@ const MatchDescription = ({
   error,
   scrollRef,
 }) => {
-  let truncatedMatchingArtists = matchingArtists.slice(0, 5)
-  let truncatedMatchingTracks = matchingTracks.slice(0, 3)
+  // the same limits the spoken summary uses, so a screen reader never hears
+  // a name that isn't on screen
+  let truncatedMatchingArtists = matchingArtists.slice(0, ARTIST_LIMIT)
+  let truncatedMatchingTracks = matchingTracks.slice(0, TRACK_LIMIT)
 
   // the error itself renders in its own separate box (see ErrorMessage) --
   // this section just needs to know not to show results underneath it
