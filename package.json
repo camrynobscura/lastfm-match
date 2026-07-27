@@ -1,7 +1,13 @@
 {
-  "name": "lastfm-compatability",
+  "name": "lastfm-match",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Compare two Last.fm listeners' music taste and see the artists and tracks they share.",
+  "homepage": "https://lastfm-match.netlify.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/camrynobscura/lastfm-match.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
