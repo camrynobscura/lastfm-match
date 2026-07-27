@@ -24,10 +24,8 @@ describe('artistUrl', () => {
     expect(artistUrl('Above & Beyond')).toBe(
       'https://www.last.fm/music/Above+%26+Beyond',
     )
-    // "!" is left alone: it's a legal path character, so encodeURIComponent
-    // passes it through and Last.fm resolves it either way
     expect(artistUrl('Panic! At The Disco')).toBe(
-      'https://www.last.fm/music/Panic!+At+The+Disco',
+      'https://www.last.fm/music/Panic%21+At+The+Disco',
     )
   })
 
@@ -45,6 +43,15 @@ describe('trackUrl', () => {
   it('puts Last.fm’s "_" separator between artist and track', () => {
     expect(trackUrl('Arctic Monkeys', 'Do I Wanna Know?')).toBe(
       'https://www.last.fm/music/Arctic+Monkeys/_/Do+I+Wanna+Know%3F',
+    )
+  })
+
+  it('escapes brackets, which Last.fm 502s on when left literal', () => {
+    // encodeURIComponent leaves "(" and ")" alone; Last.fm answers 502 for
+    // the literal form and 200 for the escaped one. bracketed track names
+    // are common enough that this covers a lot of links
+    expect(trackUrl('The Kooks', 'See The Sun (Alternate Version)')).toBe(
+      'https://www.last.fm/music/The+Kooks/_/See+The+Sun+%28Alternate+Version%29',
     )
   })
 
