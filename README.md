@@ -83,29 +83,28 @@ that the browser talks to instead of Last.fm. Three details that matter:
 
 ```bash
 npm install
-npx netlify dev          # http://localhost:8888
+cp .env.example .env     # then paste in your Last.fm API key
+npm run dev              # http://localhost:8888
 ```
 
-Use `netlify dev`, **not** `npm run dev`. The latter runs Vite alone, which
-doesn't serve the function, so every search 404s.
+Grab a key from [Last.fm](https://www.last.fm/api/account/create). Note the
+variable has no `VITE_` prefix — see above. For deploys the same variable goes
+in the Netlify UI under Site configuration → Environment variables.
 
-You'll need a `.env` file with a [Last.fm API key](https://www.last.fm/api/account/create):
-
-```
-LASTFM_API_KEY=your_key_here
-```
-
-No `VITE_` prefix — see above. For deploys the same variable goes in the
-Netlify UI under Site configuration → Environment variables.
+`npm run dev` runs Vite *and* the Netlify function together on one origin,
+because the app is broken without the function — every search would 404.
 
 | command | what it does |
 | --- | --- |
-| `npx netlify dev` | Vite + the function on one origin (:8888) |
+| `npm run dev` | Vite + the function on one origin (:8888) |
+| `npm run dev:vite` | Vite alone. Fine for styling, useless for anything that fetches |
 | `npm run build` | production build |
 | `npm run preview` | serve the production build |
 | `npm test` | Vitest suite |
 | `npm run lint` | ESLint |
 | `npm run og` | re-render `public/og.png` from `design/og.html` |
+
+Requires Node 20.19+ (Vite 7's floor).
 
 ## Testing
 

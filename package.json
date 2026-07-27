@@ -10,8 +10,12 @@
     "url": "https://github.com/camrynobscura/lastfm-match.git"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
-    "dev": "vite",
+    "dev": "npx --yes netlify dev",
+    "dev:vite": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
