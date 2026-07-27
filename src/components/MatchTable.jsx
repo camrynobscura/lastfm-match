@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { parseTrackKey } from '../lib/compatibility'
 import { getDisplayPage } from '../lib/pagination'
 import { artistUrl, trackUrl } from '../lib/lastfmLinks'
@@ -112,11 +112,51 @@ const MatchTable = ({
   scrollRef,
 }) => {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [announcement, setAnnouncement] = useState('')
+  const rowsRef = useRef(null)
+  // index of the first row revealed by the last press, when that press also
+  // removed the button. null the rest of the time
+  const rowToFocus = useRef(null)
 
   // fresh results start back at the first page
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
+    setAnnouncement('')
   }, [items])
+
+  // the button unmounts on the press that exhausts the list, and focus falls
+  // to <body> with it -- so the next Tab restarts from the top of the page,
+  // which after a long list is a long way from where the user was. move it
+  // onto the first row that press revealed instead: that's where the new
+  // content starts, and the row name is a link, so the ring is already
+  // visible there.
+  useEffect(() => {
+    const index = rowToFocus.current
+    if (index === null) return
+    rowToFocus.current = null
+
+    const row = rowsRef.current?.querySelectorAll('.row')[index]
+    if (!row) return
+    // prefer the link; a row whose name failed to build one isn't focusable
+    // on its own, so make it focusable without adding it to the tab order
+    const target = row.querySelector('a') ?? row
+    if (target === row) row.tabIndex = -1
+    target.focus()
+  }, [visibleCount])
+
+  const showMore = () => {
+    const firstNewRow = visibleCount
+    const next = Math.min(visibleCount + PAGE_SIZE, items.length)
+    // only claim focus when the button is about to disappear -- while it
+    // survives, leaving focus on it is what lets you press it again
+    if (next >= items.length) rowToFocus.current = firstNewRow
+    setVisibleCount(next)
+    setAnnouncement(
+      next >= items.length
+        ? `Showing all ${items.length} ${heading}.`
+        : `Showing ${next} of ${items.length} ${heading}.`,
+    )
+  }
 
   if (error || isLoading || !hasSubmitted) return null
   // nothing in this list: MatchDescription already explains it
@@ -180,6 +220,7 @@ const MatchTable = ({
             </div>
             <div
               className='rows'
+              ref={rowsRef}
               style={{
                 '--username-col-width': usernameColWidth,
                 '--plays-col-width': playsColWidth,
@@ -205,21 +246,19 @@ const MatchTable = ({
               })}
             </div>
             {hasMore && (
-              <button
-                type='button'
-                className='see-more'
-                onClick={() =>
-                  setVisibleCount((count) =>
-                    Math.min(count + PAGE_SIZE, items.length),
-                  )
-                }
-              >
+              <button type='button' className='see-more' onClick={showMore}>
                 See more {heading}
                 <span className='plus' aria-hidden='true'>
                   +
                 </span>
               </button>
             )}
+            {/* rows appearing is a silent change otherwise -- nothing about
+                the new content is announced, and the button's own label
+                doesn't change */}
+            <p className='sr-only' role='status'>
+              {announcement}
+            </p>
           </section>
         </div>
       </div>
