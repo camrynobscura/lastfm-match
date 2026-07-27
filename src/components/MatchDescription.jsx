@@ -49,7 +49,9 @@ const MatchDescription = ({
             <ScoreDisplay score={score} />
           </div>
           <div className='match-copy'>
-            {/* the two listeners link to their own Last.fm profiles */}
+            {/* the two listeners link to their own Last.fm profiles. the ×
+                is decorative: read aloud it lands as "times", so it's hidden
+                and a word stands in, making the line a sentence */}
             <p className='names-caption'>
               <a
                 href={userUrl(staticUsernameOne)}
@@ -58,7 +60,10 @@ const MatchDescription = ({
               >
                 {staticUsernameOne}
               </a>{' '}
-              <span className='pairing-x'>×</span>{' '}
+              <span className='pairing-x' aria-hidden='true'>
+                ×
+              </span>
+              <span className='sr-only'>and</span>{' '}
               <a
                 href={userUrl(staticUsernameTwo)}
                 target='_blank'
