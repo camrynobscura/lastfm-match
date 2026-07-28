@@ -9,6 +9,11 @@ const PAGE_SIZE = 10
 // other characters, which left a gap between the username and the bar.
 const BAR_USERNAME_FONT = "600 11.2px 'SUSE Mono', monospace"
 const PLAYS_FONT = "600 12.8px 'SUSE Mono', monospace"
+// .rank's font (1.4rem * 16px root)
+const RANK_FONT = "700 22.4px 'Barlow Condensed', sans-serif"
+// the clear space between the rank and the name, matching what a two-digit
+// rank left in the old fixed 34px column
+const RANK_GAP = 10
 
 let measureCanvasContext
 function measureTextWidth(text, font) {
@@ -177,6 +182,17 @@ const MatchTable = ({
     measureTextWidth(String(max), PLAYS_FONT),
   )}px`
 
+  // the rank column was a flat 34px, which fits "99." but not "100." -- the
+  // number ran into the name once a list passed 99 rows, which it can now
+  // that nothing caps it. size it to the highest rank this list will show
+  // (padStart keeps a minimum of two digits, so short lists are unchanged)
+  const rankColWidth = `${Math.ceil(
+    measureTextWidth(
+      `${String(items.length).padStart(2, '0')}.`,
+      RANK_FONT,
+    ),
+  ) + RANK_GAP}px`
+
   // a <section> is only exposed as a landmark once it has an accessible
   // name, so point it at the heading it already contains -- that promotes
   // both panels into the screen reader's landmark list. derived from
@@ -217,6 +233,7 @@ const MatchTable = ({
               style={{
                 '--username-col-width': usernameColWidth,
                 '--plays-col-width': playsColWidth,
+                '--rank-col-width': rankColWidth,
               }}
             >
               {visible.map((item, i) => {

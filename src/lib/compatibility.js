@@ -1,7 +1,14 @@
 // converts a list of Last.fm items (artists or tracks) into a
 // { key: playcount } map -- keyFn decides the key (artist name, or
 // "Artist :: Track" for tracks)
+//
+// anything that isn't an array is treated as no items rather than thrown
+// on: this runs inside a useMemo during render, so a response missing its
+// list (`{ topartists: {} }`) would otherwise blank the whole page instead
+// of showing the "nothing in common" copy an empty list already produces.
 export function toPlaycountMap(items, keyFn) {
+  if (!Array.isArray(items)) return {}
+
   return items.reduce((acc, item) => {
     acc[keyFn(item)] = Number(item.playcount)
     return acc
@@ -17,8 +24,17 @@ export function toTrackKey(artistName, trackName) {
   return `${artistName}${TRACK_KEY_SEPARATOR}${trackName}`
 }
 
+// note the separator is matched on its first occurrence, so an artist whose
+// own name contains " :: " would take the split point with it. no real
+// handling for that -- it needs the literal sequence in a name, and any
+// escaping scheme would cost more than the case is worth.
 export function parseTrackKey(key) {
   const i = key.indexOf(TRACK_KEY_SEPARATOR)
+  // without this, a key that isn't a track key slices into nonsense --
+  // indexOf returns -1, and "Creep" comes back as { artist: "Cree",
+  // track: "ep" } rather than failing in any visible way
+  if (i === -1) return { artist: '', track: key }
+
   return {
     artist: key.slice(0, i),
     track: key.slice(i + TRACK_KEY_SEPARATOR.length),

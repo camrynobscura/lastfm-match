@@ -141,3 +141,30 @@ describe('musicCompatibility', () => {
     expect(artistsOnly.score).toBeGreaterThan(tracksOnly.score)
   })
 })
+
+describe('resilience to unexpected shapes', () => {
+  // this runs inside a useMemo during render, so throwing here blanks the
+  // whole page rather than degrading -- a response missing its list must
+  // behave like an empty one
+  it('treats a missing list as no items instead of throwing', () => {
+    expect(toPlaycountMap(undefined, (a) => a.name)).toEqual({})
+    expect(toPlaycountMap(null, (a) => a.name)).toEqual({})
+  })
+
+  it('treats a single object (not an array) as no items', () => {
+    expect(toPlaycountMap({ name: 'X', playcount: '5' }, (a) => a.name)).toEqual({})
+  })
+
+  it('does not slice a non-track key into nonsense', () => {
+    // indexOf returns -1 without the separator, which used to make "Creep"
+    // come back as { artist: "Cree", track: "ep" }
+    expect(parseTrackKey('Creep')).toEqual({ artist: '', track: 'Creep' })
+  })
+
+  it('round-trips a normal track key', () => {
+    expect(parseTrackKey(toTrackKey('Vance Joy', 'Riptide'))).toEqual({
+      artist: 'Vance Joy',
+      track: 'Riptide',
+    })
+  })
+})
