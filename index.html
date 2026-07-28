@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the page paint into the areas iOS reserves
+         for its own UI (notch, home indicator, and apparently also the
+         bottom toolbar's collapsed state) instead of stopping short of
+         them -- paired with env(safe-area-inset-bottom) on the footer in
+         index.scss, so its ink can actually reach that space -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- without this, iOS Safari tints its own chrome (status bar, bottom
          toolbar) using the page's background colour by default -- which is
          $soft-blue here, so the browser's own UI reads as an unwanted blue

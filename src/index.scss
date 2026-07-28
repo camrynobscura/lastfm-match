@@ -92,17 +92,10 @@ body {
   display: flex;
   place-items: start;
   min-width: 320px;
-  // 100vh is a fixed value set once, based on the largest possible viewport
-  // (toolbar collapsed) -- not the *current* one. iOS Safari's toolbar
-  // collapses as you scroll, growing the real viewport live, but 100vh
-  // doesn't track that. #root (the flex child) is top-aligned and only as
-  // tall as its content, so the gap between #root's bottom and body's fixed
-  // min-height shows body's own $soft-blue -- and grows as you scroll,
-  // since the toolbar keeps collapsing while 100vh stays put.
-  //
-  // 100dvh tracks the real, current viewport instead. kept as a second
-  // declaration, not a replacement: a browser that doesn't recognise dvh
-  // ignores the whole declaration and keeps the 100vh above.
+  // fills the current viewport when content is shorter -- removing this
+  // was tried and reverted: without it, any screen taller than the page's
+  // real content (the common case on desktop) shows raw html ink filling
+  // the rest immediately, which is worse than the bug it was chasing.
   min-height: 100vh;
   min-height: 100dvh;
   color: $ink;
@@ -1109,6 +1102,13 @@ h1 {
   background: $ink;
   color: $soft-blue;
   padding: 18px 20px;
+  // extra ink reaching into the safe-area inset at the bottom of the
+  // screen (requires viewport-fit=cover in index.html, or this is always
+  // 0). paired with the meta tag above: without it, this is the standard
+  // Apple-documented mechanism for notch/home-indicator areas, and it
+  // appears to also cover Safari's reserved toolbar-collapse space --
+  // real device confirmation still needed either way.
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   border-top: 1.5px solid rgba($soft-white, 0.18);
 
   p {
