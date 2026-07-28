@@ -1269,6 +1269,31 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .loading-indicator .equalizer span {
     animation: none;
+    // without an explicit height, animation:none falls back to the base
+    // rule's height:100% -- every bar pinned to the same full height,
+    // reading as a solid block rather than an equalizer
+  }
+
+  // a still hill instead: each bar fixed to a different height, peaking in
+  // the middle, so the static shape still looks like a sound wave
+  .loading-indicator .equalizer span:nth-child(1),
+  .loading-indicator .equalizer span:nth-child(9) {
+    height: calc(var(--block) * 4);
+  }
+  .loading-indicator .equalizer span:nth-child(2),
+  .loading-indicator .equalizer span:nth-child(8) {
+    height: calc(var(--block) * 6);
+  }
+  .loading-indicator .equalizer span:nth-child(3),
+  .loading-indicator .equalizer span:nth-child(7) {
+    height: calc(var(--block) * 8);
+  }
+  .loading-indicator .equalizer span:nth-child(4),
+  .loading-indicator .equalizer span:nth-child(6) {
+    height: calc(var(--block) * 10);
+  }
+  .loading-indicator .equalizer span:nth-child(5) {
+    height: calc(var(--block) * 12);
   }
   .match-results .names-caption,
   .match-results .compatibility-percentage,
