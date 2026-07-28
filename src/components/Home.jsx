@@ -253,8 +253,15 @@ const Home = () => {
       ).matches
 
       const scrollToTop = () => {
-        const distance = el.getBoundingClientRect().top - window.innerHeight
-        // only scroll down to it -- don't yank the page backward if it's
+        const revealDistance = el.getBoundingClientRect().top - window.innerHeight
+        // capped so the results box's own top (the score ring) never gets
+        // pushed off the top of the viewport -- on a short phone screen,
+        // that box alone can be taller than one screen, and revealing the
+        // next section's top at the very bottom would scroll past the
+        // score ring before the user has even seen it
+        const keepResultsTopVisible = scoreRef.current?.getBoundingClientRect().top ?? Infinity
+        const distance = Math.min(revealDistance, keepResultsTopVisible)
+        // only scroll down -- don't yank the page backward if it's
         // already past this point
         if (distance > 0) {
           window.scrollTo({
