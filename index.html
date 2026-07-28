@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- without this, iOS Safari tints its own chrome (status bar, bottom
+         toolbar) using the page's background colour by default -- which is
+         $soft-blue here, so the browser's own UI reads as an unwanted blue
+         strip below the dark footer. $ink makes it read as a continuation
+         of the footer instead. -->
+    <meta name="theme-color" content="#171728" />
 
     <!-- fonts are self-hosted (see src/fonts.scss), so there's no
          third-party stylesheet to fetch first. these two carry the
