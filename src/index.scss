@@ -74,6 +74,19 @@ a {
   text-decoration: inherit;
 }
 
+// iOS Safari's elastic overscroll (the "rubber band" bounce past the true
+// top/bottom of the page) reveals whatever's behind the document, which
+// falls through to html's own background when nothing else claims it.
+// unset, that resolves to body's $soft-blue -- showing past the footer
+// when someone scrolls (or bounces) past the true bottom. $ink instead,
+// so it reads as a continuation of the footer rather than a stray strip.
+// this is separate from the min-height:100vh/100dvh fix below, which
+// covers a real layout gap; this covers the bounce, which happens outside
+// the document entirely and isn't something layout alone can fix.
+html {
+  background: $ink;
+}
+
 body {
   margin: 0;
   display: flex;
