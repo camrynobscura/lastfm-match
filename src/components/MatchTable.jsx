@@ -164,12 +164,20 @@ const MatchTable = ({
 
   // the username column shrinks to fit whichever of the two names is
   // longer (so a short name like "rj" doesn't leave a gap before the bar),
-  // capped at 100px for long names
+  // capped at 100px for long names.
+  //
+  // Math.ceil, matching playsColWidth/rankColWidth below: canvas measureText
+  // is an approximation of the engine's own text layout, and the two can
+  // disagree by a fraction of a pixel. left unrounded, that gap was enough
+  // for Safari/WebKit to render "turtlepuff" as "turtlepuf…" while the same
+  // box fit the full name in Chrome and Firefox.
   const usernameColWidth = `${Math.min(
     100,
-    Math.max(
-      measureTextWidth(staticUsernameOne, BAR_USERNAME_FONT),
-      measureTextWidth(staticUsernameTwo, BAR_USERNAME_FONT),
+    Math.ceil(
+      Math.max(
+        measureTextWidth(staticUsernameOne, BAR_USERNAME_FONT),
+        measureTextWidth(staticUsernameTwo, BAR_USERNAME_FONT),
+      ),
     ),
   )}px`
 
