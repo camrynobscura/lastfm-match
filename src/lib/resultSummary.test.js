@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { countPhrase, describeMatch } from './resultSummary'
+import { countPhrase, describeMatch, listJoiner } from './resultSummary'
+
+describe('listJoiner', () => {
+  // the visible prose components build the same list out of styled spans,
+  // so they share this rule rather than the joined string
+  it('puts nothing before a lone item', () => {
+    expect(listJoiner(0, 1)).toBe('')
+  })
+
+  it('joins a pair with "and", no comma', () => {
+    expect([0, 1].map((i) => listJoiner(i, 2))).toEqual(['', ' and '])
+  })
+
+  it('uses commas, and a serial comma before the last of three or more', () => {
+    expect([0, 1, 2].map((i) => listJoiner(i, 3))).toEqual(['', ', ', ', and '])
+  })
+})
 
 const artists = ['Olivia Rodrigo', 'Lady Gaga', 'The Beatles']
 const tracks = ['Sublime :: Santeria', 'Vance Joy :: Riptide']
@@ -25,7 +41,7 @@ describe('describeMatch', () => {
 
   it('names the artists as a spoken list', () => {
     expect(describeMatch(48, artists, [])).toContain(
-      'You both love artists like Olivia Rodrigo, Lady Gaga and The Beatles.',
+      'You both love artists like Olivia Rodrigo, Lady Gaga, and The Beatles.',
     )
   })
 
@@ -47,7 +63,7 @@ describe('describeMatch', () => {
     const many = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     const manyTracks = many.map((n) => `Artist ${n} :: Track ${n}`)
     const out = describeMatch(90, many, manyTracks)
-    expect(out).toContain('artists like a, b, c, d and e.')
+    expect(out).toContain('artists like a, b, c, d, and e.')
     expect(out).not.toContain('f')
     expect(out).toContain('Track a by Artist a')
     expect(out).not.toContain('Track d')

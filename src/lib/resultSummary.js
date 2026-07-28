@@ -11,11 +11,20 @@ export const TRACK_LIMIT = 3
 export const countPhrase = (count, noun) =>
   count === 0 ? `no ${noun}s` : `${count} ${noun}${count === 1 ? '' : 's'}`
 
-// "A", "A and B", "A, B and C"
+// The punctuation that goes *before* item i of n in a written list:
+// "A." / "A and B." / "A, B, and C."
+//
+// shared with the visible prose components, which build the same list out
+// of styled spans and so can't use the joined string below. deriving both
+// from one rule is what keeps the spoken and visible copy identical.
+export const listJoiner = (index, total) => {
+  if (index === 0) return ''
+  if (index === total - 1) return total > 2 ? ', and ' : ' and '
+  return ', '
+}
+
 const sentenceList = (items) =>
-  items.length < 2
-    ? (items[0] ?? '')
-    : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+  items.map((item, i) => `${listJoiner(i, items.length)}${item}`).join('')
 
 // tracks are keyed "Artist :: Track"; spoken the way the visible copy reads
 const trackPhrase = (key) => {

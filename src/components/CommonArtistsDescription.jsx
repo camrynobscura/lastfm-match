@@ -1,19 +1,18 @@
 import React from 'react'
+import { listJoiner } from '../lib/resultSummary'
 
-const CommonArtistsDescription = ({artists}) => {
+const CommonArtistsDescription = ({ artists }) => {
   return (
     <div className='artists-description'>
       <p>
         You both love <span className='highlight-word'>artists</span> like{' '}
         {artists.map((artist, i) => (
           <React.Fragment key={artist}>
-            {i === artists.length - 1 ? (
-              <>
-                and <span className='bold'>{artist}.</span>
-              </>
-            ) : (
-              <span className='bold'>{artist}, </span>
-            )}
+            {listJoiner(i, artists.length)}
+            <span className='bold'>
+              {artist}
+              {i === artists.length - 1 ? '.' : ''}
+            </span>
           </React.Fragment>
         ))}
       </p>

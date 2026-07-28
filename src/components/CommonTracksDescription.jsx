@@ -1,5 +1,6 @@
 import React from 'react'
 import { parseTrackKey } from '../lib/compatibility'
+import { listJoiner } from '../lib/resultSummary'
 
 const CommonTracksDescription = ({ tracks }) => {
   const parsedTracks = tracks.map(parseTrackKey)
@@ -11,20 +12,11 @@ const CommonTracksDescription = ({ tracks }) => {
         You both love <span className='highlight-word'>tracks</span> like{' '}
         {parsedTracks.map(({ artist, track }, i) => (
           <React.Fragment key={tracks[i]}>
-            {i === parsedTracks.length - 1 ? (
-              <>
-                and{' '}
-                <span className='bold'>
-                  {track} <span style={{ fontWeight: 'normal' }}>by</span>{' '}
-                  {artist}.
-                </span>
-              </>
-            ) : (
-              <span className='bold'>
-                {track} <span style={{ fontWeight: 'normal' }}>by</span>{' '}
-                {artist},{' '}
-              </span>
-            )}
+            {listJoiner(i, parsedTracks.length)}
+            <span className='bold'>
+              {track} <span style={{ fontWeight: 'normal' }}>by</span> {artist}
+              {i === parsedTracks.length - 1 ? '.' : ''}
+            </span>
           </React.Fragment>
         ))}
       </p>
