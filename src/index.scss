@@ -1119,6 +1119,37 @@ h1 {
   }
 }
 
+// iOS 26 Safari's Liquid Glass toolbar reads the background-color of a
+// position: fixed/sticky element near the viewport's bottom edge to decide
+// how to tint its own (collapsed) toolbar -- it no longer reads
+// theme-color at all. this site had no such element, so Safari fell back
+// to some other color instead of the footer's ink. bottom/min-height match
+// what's been found to actually register with Safari's detection; -8px
+// leaves only a few px inside the viewport, same color as the footer it
+// sits below so it isn't visible as its own element.
+//
+// gated to Safari/iOS specifically: the @supports combo only passes on
+// WebKit running on an Apple platform (Chrome/Firefox/Edge on iOS are also
+// WebKit under the hood but don't match all three), and the width query
+// keeps it off desktop Safari, which doesn't have this toolbar behaviour.
+.ios-toolbar-tint {
+  display: none;
+
+  @supports (-webkit-touch-callout: none) and
+    (-webkit-text-size-adjust: none) and (font: -apple-system-body) {
+    @media (max-width: 768px) {
+      display: block;
+      position: fixed;
+      bottom: -8px;
+      left: 0;
+      width: 100%;
+      min-height: 12px;
+      background-color: $ink;
+      pointer-events: none;
+    }
+  }
+}
+
 // ============================================================
 // Loading indicator
 // ============================================================
