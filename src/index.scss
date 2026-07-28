@@ -1083,21 +1083,22 @@ h1 {
 // ============================================================
 
 .site-footer {
-  // full-bleed like .shared-list-panel
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  // same $soft-blue/$ink pairing as .head .app-description, rather than the
-  // dark panel this used to match -- a light footer means the page ends on
-  // the same background color everywhere, so there's no seam left for iOS
-  // Safari's toolbar-tinting to get wrong (see the ios-toolbar-tint removal)
-  background: $soft-blue;
+  // a small card like .form, sized to its content -- not full-bleed, so it
+  // sits as an island on the page's own $soft-blue background rather than
+  // extending it edge to edge. the blue still shows below it all the way
+  // to the true bottom of the page, so the page still ends in one
+  // consistent color (see the ios-toolbar-tint removal for why that matters)
+  width: fit-content;
+  max-width: 100%;
+  margin: 32px auto 44px;
+  background-color: $soft-white;
+  border: 2px solid $ink;
+  border-radius: 0;
+  box-shadow: 10px 10px 0 rgba($ink, 0.9);
   color: $ink;
-  padding: 18px 20px;
-  border-top: 1.5px solid rgba($ink, 0.15);
+  padding: 18px 24px;
 
   p {
-    margin: 0;
     max-width: 640px;
     margin: 0 auto;
     font-size: 0.8rem;
