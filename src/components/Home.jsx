@@ -24,6 +24,9 @@ const Home = () => {
   const sharedArtistsRef = useRef(null)
   const usernameOneRef = useRef(null)
   const usernameTwoRef = useRef(null)
+  // identifies the newest search, so an older one that lands after it can
+  // tell it has been superseded and drop its result
+  const latestSearch = useRef(0)
 
   // data from form input
   let [usernameOne, setUsernameOne] = useState('')
@@ -97,6 +100,10 @@ const Home = () => {
     setHasSubmitted(false)
     setSubmitCount((n) => n + 1)
 
+    // trimmed everywhere from here on, not just for the empty check. Last.fm
+    // tolerates surrounding spaces on lookup, so a stray one still finds the
+    // user -- but it reaches the caption, and the profile link built from it
+    // ("/user/++rj++") 404s.
     const trimmedOne = usernameOne.trim()
     const trimmedTwo = usernameTwo.trim()
 
@@ -116,16 +123,32 @@ const Home = () => {
       return
     }
 
-    setStaticUsernameOne(usernameOne)
-    setStaticUsernameTwo(usernameTwo)
+    setStaticUsernameOne(trimmedOne)
+    setStaticUsernameTwo(trimmedTwo)
     setIsLoading(true)
 
-    try {
-      let usernameOneTopArtists = await getTopArtists(usernameOne, timePeriod)
-      let usernameTwoTopArtists = await getTopArtists(usernameTwo, timePeriod)
+    // submitting again before the first search returns leaves two in flight,
+    // and the slower one lands last. without this the abandoned search's data
+    // overwrote the newer results while the caption still named the newer
+    // pair -- one pair's names above the other pair's artists. every write
+    // below is skipped once a newer search has started.
+    const searchId = ++latestSearch.current
+    const superseded = () => searchId !== latestSearch.current
 
-      let usernameOneTopTracks = await getTopTracks(usernameOne, timePeriod)
-      let usernameTwoTopTracks = await getTopTracks(usernameTwo, timePeriod)
+    try {
+      const [
+        usernameOneTopArtists,
+        usernameTwoTopArtists,
+        usernameOneTopTracks,
+        usernameTwoTopTracks,
+      ] = await Promise.all([
+        getTopArtists(trimmedOne, timePeriod),
+        getTopArtists(trimmedTwo, timePeriod),
+        getTopTracks(trimmedOne, timePeriod),
+        getTopTracks(trimmedTwo, timePeriod),
+      ])
+
+      if (superseded()) return
 
       setUsernameOneData({
         artists: usernameOneTopArtists,
@@ -136,6 +159,7 @@ const Home = () => {
         tracks: usernameTwoTopTracks,
       })
     } catch (err) {
+      if (superseded()) return
       // fetch itself throws TypeError for network-level failures (offline,
       // DNS, CORS); anything else (bad JSON, etc) is a more generic failure
       setSubmitError(
@@ -144,8 +168,12 @@ const Home = () => {
           : 'Something went wrong. Please try again.',
       )
     } finally {
-      setIsLoading(false)
-      setHasSubmitted(true)
+      // an abandoned search must not clear the loading state out from under
+      // the one that replaced it
+      if (!superseded()) {
+        setIsLoading(false)
+        setHasSubmitted(true)
+      }
     }
   }
 
