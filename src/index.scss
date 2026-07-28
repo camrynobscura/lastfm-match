@@ -544,6 +544,13 @@ h1 {
       // above -- pretty considers more than one line at a time to avoid
       // that. unsupported browsers just ignore this and keep greedy wrap.
       text-wrap: pretty;
+      // TEMPORARY DIAGNOSTIC -- swaps the self-hosted SUSE Mono webfont for
+      // the system's own monospace font here only, to isolate whether the
+      // wrapping issue is specific to the SUSE Mono file (real iOS Safari
+      // renders this custom font differently than Playwright's WebKit did
+      // in testing) or independent of font choice entirely. revert after
+      // checking on-device either way -- this isn't a real fix on its own.
+      font-family: ui-monospace, Menlo, monospace;
     }
   }
 
