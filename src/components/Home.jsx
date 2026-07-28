@@ -27,6 +27,9 @@ const Home = () => {
   // identifies the newest search, so an older one that lands after it can
   // tell it has been superseded and drop its result
   const latestSearch = useRef(0)
+  // what the in-flight search is asking for, so an impatient repeat of the
+  // same thing can be dropped while a genuinely different one still runs
+  const inFlightSearch = useRef(null)
 
   // data from form input
   let [usernameOne, setUsernameOne] = useState('')
@@ -123,6 +126,18 @@ const Home = () => {
       return
     }
 
+    // an impatient second press of Match, while the same search is already
+    // running, would fire another four requests for the answer already on
+    // its way. a *different* search still goes ahead and supersedes the
+    // first, so changing your mind mid-search keeps working.
+    //
+    // not `disabled` on the button: disabling the element the user just
+    // pressed drops focus to <body>, which is the same trap the "see more"
+    // button had.
+    const searchKey = JSON.stringify([trimmedOne, trimmedTwo, timePeriod])
+    if (isLoading && inFlightSearch.current === searchKey) return
+    inFlightSearch.current = searchKey
+
     setStaticUsernameOne(trimmedOne)
     setStaticUsernameTwo(trimmedTwo)
     setIsLoading(true)
@@ -171,6 +186,7 @@ const Home = () => {
       // an abandoned search must not clear the loading state out from under
       // the one that replaced it
       if (!superseded()) {
+        inFlightSearch.current = null
         setIsLoading(false)
         setHasSubmitted(true)
       }
