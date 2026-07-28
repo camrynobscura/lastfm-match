@@ -539,6 +539,11 @@ h1 {
     p {
       margin: 0;
       line-height: 1.6;
+      // the default greedy wrap can strand a short connector word ("and",
+      // "by") on its own line even when it would clearly fit on the line
+      // above -- pretty considers more than one line at a time to avoid
+      // that. unsupported browsers just ignore this and keep greedy wrap.
+      text-wrap: pretty;
     }
   }
 
