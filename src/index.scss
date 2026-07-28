@@ -74,35 +74,17 @@ a {
   text-decoration: inherit;
 }
 
-// iOS Safari's elastic overscroll (the "rubber band" bounce past the true
-// top/bottom of the page) reveals whatever's behind the document, which
-// falls through to html's own background when nothing else claims it.
-// unset, that resolves to body's $soft-blue -- showing past the footer
-// when someone scrolls (or bounces) past the true bottom. $ink instead,
-// so it reads as a continuation of the footer rather than a stray strip.
-// this is separate from the min-height:100vh/100dvh fix below, which
-// covers a real layout gap; this covers the bounce, which happens outside
-// the document entirely and isn't something layout alone can fix.
-html {
-  background: $ink;
-}
-
 body {
   margin: 0;
   display: flex;
   place-items: start;
   min-width: 320px;
-  // 100vh is a fixed value set once, based on the largest possible viewport
-  // (toolbar collapsed) -- not the *current* one. iOS Safari's toolbar
-  // collapses as you scroll, growing the real viewport live, but 100vh
-  // doesn't track that. #root (the flex child) is top-aligned and only as
-  // tall as its content, so the gap between #root's bottom and body's fixed
-  // min-height shows body's own $soft-blue -- and grows as you scroll,
-  // since the toolbar keeps collapsing while 100vh stays put.
-  //
-  // 100dvh tracks the real, current viewport instead. kept as a second
-  // declaration, not a replacement: a browser that doesn't recognise dvh
-  // ignores the whole declaration and keeps the 100vh above.
+  // fills the current viewport when content is shorter than it (the bare
+  // form, or a short result). 100dvh as a second declaration, not a
+  // replacement: a browser that doesn't recognise dvh ignores the whole
+  // line and keeps the 100vh above. removing this outright was tried and
+  // reverted -- any screen taller than the actual content (the common
+  // desktop case) showed raw canvas below it instead of $soft-blue.
   min-height: 100vh;
   min-height: 100dvh;
   color: $ink;
