@@ -1299,26 +1299,35 @@ h1 {
     // reading as a solid block rather than an equalizer
   }
 
-  // a still hill instead: each bar fixed to a different height, peaking in
-  // the middle, so the static shape still looks like a sound wave
-  .loading-indicator .equalizer span:nth-child(1),
-  .loading-indicator .equalizer span:nth-child(9) {
+  // a still hill instead: each bar fixed to a different height, peaking
+  // toward the right (bar 7 of 9) rather than dead centre, so the static
+  // shape reads more like a wave building up than a plain symmetric bump
+  .loading-indicator .equalizer span:nth-child(1) {
     height: calc(var(--block) * 4);
   }
-  .loading-indicator .equalizer span:nth-child(2),
-  .loading-indicator .equalizer span:nth-child(8) {
+  .loading-indicator .equalizer span:nth-child(2) {
+    height: calc(var(--block) * 5);
+  }
+  .loading-indicator .equalizer span:nth-child(3) {
     height: calc(var(--block) * 6);
   }
-  .loading-indicator .equalizer span:nth-child(3),
-  .loading-indicator .equalizer span:nth-child(7) {
+  .loading-indicator .equalizer span:nth-child(4) {
     height: calc(var(--block) * 8);
   }
-  .loading-indicator .equalizer span:nth-child(4),
+  .loading-indicator .equalizer span:nth-child(5) {
+    height: calc(var(--block) * 9);
+  }
   .loading-indicator .equalizer span:nth-child(6) {
     height: calc(var(--block) * 10);
   }
-  .loading-indicator .equalizer span:nth-child(5) {
+  .loading-indicator .equalizer span:nth-child(7) {
     height: calc(var(--block) * 12);
+  }
+  .loading-indicator .equalizer span:nth-child(8) {
+    height: calc(var(--block) * 9);
+  }
+  .loading-indicator .equalizer span:nth-child(9) {
+    height: calc(var(--block) * 5);
   }
   .match-results .names-caption,
   .match-results .compatibility-percentage,
