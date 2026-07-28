@@ -720,8 +720,8 @@ h1 {
   }
 }
 
-// padding, not margin: the footer shares this $ink background and sits
-// flush, so a margin would open a light band and detach it. 26px + 22px
+// extra bottom room inside the dark panel before it meets the (now light)
+// footer below. 26px + 22px
 .shared-list-panel--tracks .match-table {
   padding-bottom: 48px;
 }
@@ -1083,15 +1083,18 @@ h1 {
 // ============================================================
 
 .site-footer {
-  // full-bleed like .shared-list-panel, and both are $ink, so the panel
-  // above blends into this and the footer reads as a continuation
+  // full-bleed like .shared-list-panel
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  background: $ink;
-  color: $soft-blue;
+  // same $soft-blue/$ink pairing as .head .app-description, rather than the
+  // dark panel this used to match -- a light footer means the page ends on
+  // the same background color everywhere, so there's no seam left for iOS
+  // Safari's toolbar-tinting to get wrong (see the ios-toolbar-tint removal)
+  background: $soft-blue;
+  color: $ink;
   padding: 18px 20px;
-  border-top: 1.5px solid rgba($soft-white, 0.18);
+  border-top: 1.5px solid rgba($ink, 0.15);
 
   p {
     margin: 0;
@@ -1102,19 +1105,17 @@ h1 {
   }
 
   a {
-    color: $soft-blue;
+    color: $ink;
     text-decoration: underline;
-    text-decoration-color: $electric-blue;
+    text-decoration-color: $ink;
     text-underline-offset: 2px;
 
     &:hover {
-      color: $orange;
       text-decoration-color: $orange;
     }
 
-    // footer background is $ink -- same reason as .match-table--dark above
     &:focus-visible {
-      @include focus-ring($soft-white);
+      @include focus-ring;
     }
   }
 }
