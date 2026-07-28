@@ -1145,12 +1145,13 @@ h1 {
   padding: 26px 0 0px 0;
 
   p {
-    max-width: 260px;
     font-family: $display-font;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: 1.1rem;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .equalizer {
