@@ -58,7 +58,7 @@ const SharedRow = ({
   const href = artist ? trackUrl(artist, name) : artistUrl(name)
 
   return (
-    <div className='row'>
+    <div className='row' role='listitem'>
       <div className='rank'>{String(rank).padStart(2, '0')}.</div>
       <div className='row-name'>
         <div className='primary' title={name}>
@@ -237,6 +237,7 @@ const MatchTable = ({
             </div>
             <div
               className='rows'
+              role='list'
               ref={rowsRef}
               style={{
                 '--username-col-width': usernameColWidth,
