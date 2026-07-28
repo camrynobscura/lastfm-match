@@ -505,17 +505,7 @@ h1 {
   text-align: left;
   border: 2px solid $ink;
   box-shadow: 10px 10px 0 rgba($ink, 0.9);
-  // narrower than the 30px this used to be unconditionally. verified
-  // against an iPhone SE (2nd gen, 375px)-sized viewport with real data:
-  // at 16px, "Redundant by Green Day," still stranded "and" on its own
-  // line (and separately split "Scooby-Doo?" across a hyphen) even
-  // though the line has room by character count -- the 56ch cap on
-  // .match-copy doesn't constrain anything this narrow, so this padding
-  // is what actually sets the text column's width on a small phone. 8px
-  // is confirmed to resolve both in that exact repro; 12px wasn't
-  // enough. restored to the original 30px at 760px below (desktop
-  // untouched).
-  padding: 8px;
+  padding: 30px;
   background-color: $soft-white;
   // fixed width + min-height so the box doesn't visibly resize between the
   // loading state and the results; 240px roughly matches the ring
@@ -545,11 +535,20 @@ h1 {
     // to min-width:auto and a long name would stretch it past the edge
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-    margin: 28px 14px 12px 14px;
 
     p {
       margin: 0;
       line-height: 1.6;
+      // centered rather than left-aligned on narrow phones specifically:
+      // greedy wrap can strand a short word ("and") on its own line with a
+      // lot of empty space beside it, which reads as broken when flush
+      // left but as an ordinary short centered line once centered -- the
+      // wrap point itself is unchanged, only how it looks is
+      text-align: center;
+
+      @media (min-width: 760px) {
+        text-align: left;
+      }
     }
   }
 
@@ -572,7 +571,6 @@ h1 {
     justify-content: center;
     align-items: center;
     gap: 46px;
-    padding: 30px;
   }
 }
 
