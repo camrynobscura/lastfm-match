@@ -16,24 +16,36 @@ const LIMIT = 500
 // shared rate limit and this site's function-invocation quota on one
 // person's account. `path` restates this function's own default route --
 // Netlify's docs say it's required alongside `rateLimit`, and both of
-// Netlify's own official examples include it. It was dropped once before
-// after it broke local `netlify dev` routing specifically, but that turned
-// out to be a local-simulator-only quirk, not a real production issue --
-// and omitting it likely made the deploy never register a rate-limit rule
-// at all (nothing about one showed up in the real deploy log, and a live
-// test against the deployed site never got a 429). 60 requests/60s per IP
-// is ~15 full two-user searches a minute (each search fires 4 requests: 2
-// users x {artists, tracks}) -- generous for a real visitor, a real
-// ceiling against a scripted loop. Requests over the limit get a 429
-// automatically; this function's own code never sees them.
-export const config = {
-  path: '/.netlify/functions/lastfm',
-  rateLimit: {
-    windowLimit: 60,
-    windowSize: 60,
-    aggregateBy: ['ip'],
-  },
-}
+// Netlify's own official examples include it. Confirmed live (a real 429
+// after 60 requests, and the deploy log's own "Processed 1 programmatic
+// custom rate limiting rules") that this genuinely works in production.
+//
+// It genuinely breaks `netlify dev` locally, though -- not just the console
+// warning ("cannot be invoked on /.netlify/functions/lastfm, because the
+// function has the following URL paths defined") but the actual request:
+// every local search falls back to index.html instead of reaching this
+// function at all. A netlify-cli local-router bug, confirmed as dev-only via
+// production still returning correct JSON on the identical path. `CONTEXT`
+// is Netlify's own deploy-context variable and is 'dev' *only* under local
+// `netlify dev` -- never during a real build, including deploy previews --
+// so this only ever disables the limiter locally, never anything deployed.
+const isLocalDev = process.env.CONTEXT === 'dev'
+
+export const config = isLocalDev
+  ? {}
+  : {
+      path: '/.netlify/functions/lastfm',
+      // 60 requests/60s per IP is ~15 full two-user searches a minute (each
+      // search fires 4 requests: 2 users x {artists, tracks}) -- generous
+      // for a real visitor, a real ceiling against a scripted loop. Requests
+      // over the limit get a 429 automatically; this function's own code
+      // never sees them.
+      rateLimit: {
+        windowLimit: 60,
+        windowSize: 60,
+        aggregateBy: ['ip'],
+      },
+    }
 
 // The API terms require caching "in accordance with the HTTP headers sent
 // with web service responses", so Last.fm's own Cache-Control wins when it
