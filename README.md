@@ -7,10 +7,7 @@ overlaps — a compatibility score, plus every artist and track they share.
 
 ![The form and a completed match, showing a 48% compatibility score and the artists both listeners have in common](docs/screenshot-match.png)
 
-## How the score works
-
-The interesting problem here isn't fetching the data, it's deciding what
-"compatible" should mean. A few things had to be true:
+## How the compatibility score is computed
 
 **Library size shouldn't be punished.** The obvious approach is Jaccard
 similarity — shared items divided by total items. But someone with 2,000
@@ -52,32 +49,17 @@ not raw playcount — so one heavy listener can't dominate the ordering.
 
 ![The shared artists table, showing per-listener play counts as paired bars](docs/screenshot-shared-artists.png)
 
-## The API key problem
+## Gotchas
 
-Last.fm's API needs a key, and the app has no traditional backend — which
-raises an obvious question: where does the key live so it doesn't end up in
-the browser?
-
-Front-end frameworks make this easy to get wrong. Vite injects environment
-variables into the client bundle, but **only ones prefixed `VITE_`**. So the
-variable here is deliberately named `LASTFM_API_KEY` with no prefix — that
-alone makes it impossible for the key to reach the browser, even if some
-future code tried to read it.
-
-The key is read by a single [Netlify Function](netlify/functions/lastfm.js)
-that the browser talks to instead of Last.fm. Three details that matter:
-
-- **It allowlists methods.** Without that, a public endpoint holding an API key
-  is an open proxy to all of Last.fm for anyone who finds the URL.
-- **It forwards Last.fm's status _and_ body unchanged.** Last.fm answers
-  "user not found" with a 404 that still carries `{ message, error: 6 }`, and
-  the app needs that body to name which username was wrong. Throwing on a
-  non-OK response — the intuitive thing to write — silently downgrades a
-  helpful error into a generic one.
-- **It caches at the edge.** Identical searches collapse onto one upstream
-  request. This matters more than usual here: with a proxy, every request
-  reaches Last.fm from the same address, so the whole site looks like a single
-  client rather than many separate visitors.
+- **Hiding the API key.** Last.fm needs a key, but this app has no backend of
+  its own, so a single [Netlify Function](netlify/functions/lastfm.js) holds
+  it. The browser only ever talks to that function, never Last.fm directly.
+- **Rate limiting.** The function limits requests per IP, so no one can
+  script a loop of requests straight at it.
+- **Error passthrough.** Last.fm's own error messages (like "user not
+  found") get forwarded untouched instead of a generic failure.
+- **Edge caching.** Identical searches get cached at the edge instead of
+  hitting Last.fm's API twice.
 
 ## Running it locally
 
@@ -87,9 +69,10 @@ cp .env.example .env     # then paste in your Last.fm API key
 npm run dev              # http://localhost:8888
 ```
 
-Grab a key from [Last.fm](https://www.last.fm/api/account/create). Note the
-variable has no `VITE_` prefix — see above. For deploys the same variable goes
-in the Netlify UI under Site configuration → Environment variables.
+Grab a key from [Last.fm](https://www.last.fm/api/account/create). The
+variable has no `VITE_` prefix on purpose, since Vite only inlines `VITE_*`
+vars into the client bundle. Same variable goes in the Netlify UI under Site
+configuration → Environment variables for deploys.
 
 `npm run dev` runs Vite *and* the Netlify function together on one origin,
 because the app is broken without the function — every search would 404.
@@ -113,23 +96,12 @@ URL building. That scope is deliberate: those are pure functions, so they test
 in milliseconds without a browser, and they're where a bug would be both
 likely and invisible. Components are verified by using the app.
 
-That split earns itself regularly. A bug where every server-side failure
-printed its error message twice survived precisely because it lived in a hook
-rather than in `lib/` — moving it into a tested module was the fix.
-
 ## Accessibility
 
-Audited against WCAG 2.1 AA and scoring 100 in Lighthouse, but the more useful
-work was in the states an automated scan never reaches — a page audit only ever
-sees the empty form, not the results. Driving the app into each state and
-auditing there caught a contrast failure affecting 500 rows that the load-time
-score reported as perfect.
-
-Also handled: results announced to screen readers without re-reading an
-animating score, repeated identical errors that produced no DOM change and so
-were silently never announced, focus moved to whichever field needs fixing,
-and focus-ring colours chosen per surface since no single colour clears 3:1 on
-both the light card and the dark panels.
+Audited against WCAG 2.1 AA and scores 100 in Lighthouse, including the
+loading and results states an automated scan misses by default. Also covers
+screen reader announcements, focus management on errors, and contrast tuned
+for both light and dark surfaces.
 
 ## Built with
 
