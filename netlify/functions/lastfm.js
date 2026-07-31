@@ -9,6 +9,28 @@ const ALLOWED_METHODS = new Set(['user.gettopartists', 'user.gettoptracks'])
 
 const LIMIT = 500
 
+// Netlify's own per-IP rate limiter, enforced before this function's code
+// even runs. Without it, this endpoint is an open proxy: anyone can script
+// a loop of unique usernames straight at it (bypassing the CDN cache below,
+// which only collapses *identical* queries), burning through Last.fm's
+// shared rate limit and this site's function-invocation quota on one
+// person's account. No `path` here on purpose: Netlify's docs list it as
+// required alongside `rateLimit`, but setting it to this function's own
+// default route (`/.netlify/functions/lastfm`) broke invocation there
+// entirely in local testing -- omitting it left the implicit default route
+// intact and rateLimit still applied. 60 requests/60s per IP is ~15 full
+// two-user searches a minute (each search fires 4 requests: 2 users x
+// {artists, tracks}) -- generous for a real visitor, a real ceiling
+// against a scripted loop. Requests over the limit get a 429
+// automatically; this function's own code never sees them.
+export const config = {
+  rateLimit: {
+    windowLimit: 60,
+    windowSize: 60,
+    aggregateBy: ['ip'],
+  },
+}
+
 // The API terms require caching "in accordance with the HTTP headers sent
 // with web service responses", so Last.fm's own Cache-Control wins when it
 // sends one. These are the fallbacks: charts move slowly, while an error
