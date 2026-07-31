@@ -979,6 +979,20 @@ h1 {
     }
   }
 
+  // forced-colors (Windows High Contrast Mode) strips background-color from
+  // both of these, so the whole comparison disappears -- add borders
+  // instead, since those survive it. CanvasText adapts to whichever
+  // contrast theme the user has chosen rather than us picking one color.
+  @media (forced-colors: active) {
+    .bar-track {
+      border: 1px solid CanvasText;
+    }
+
+    .fill {
+      border-right: 1px solid CanvasText;
+    }
+  }
+
   .plays {
     display: flex;
     align-items: center;
