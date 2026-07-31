@@ -1,0 +1,23 @@
+# Baseline security headers for every response on the real deploy.
+#
+# Lives here (not in netlify.toml) on purpose: Netlify applies
+# netlify.toml's own [[headers]] blocks unconditionally, even under
+# `netlify dev` -- but Vite's dev server injects an inline bootstrap
+# script for Fast Refresh that a strict script-src blocks outright,
+# which took the whole dev app down to a blank page. Vite copies
+# everything in public/ verbatim into dist/ during a real build, so this
+# file becomes dist/_headers and only applies to the actual deploy --
+# never to `netlify dev`, which never touches dist/.
+#
+# CSP is written for this app's actual footprint (checked, not guessed):
+# everything is same-origin, fonts are self-hosted, the only fetch target
+# is this site's own function, and there's no dangerouslySetInnerHTML/eval
+# anywhere -- so script-src can be a strict 'self' with no unsafe-inline.
+# style-src keeps 'unsafe-inline' because React sets bar widths and grid
+# column vars via the style prop; that's a CSS-only allowance (no script
+# execution risk), not a loophole back to what script-src closes.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

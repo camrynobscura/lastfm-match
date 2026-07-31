@@ -40,3 +40,6 @@
   for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# Security headers (CSP, Referrer-Policy, etc.) live in public/_headers,
+# not here -- see that file for why.
