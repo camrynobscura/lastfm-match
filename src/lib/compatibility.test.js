@@ -151,8 +151,10 @@ describe('resilience to unexpected shapes', () => {
     expect(toPlaycountMap(null, (a) => a.name)).toEqual({})
   })
 
-  it('treats a single object (not an array) as no items', () => {
-    expect(toPlaycountMap({ name: 'X', playcount: '5' }, (a) => a.name)).toEqual({})
+  it('treats a bare object as a single item, not zero -- Last.fm\'s one-result quirk on some endpoints', () => {
+    expect(
+      toPlaycountMap({ name: 'X', playcount: '5' }, (a) => a.name),
+    ).toEqual({ X: 5 })
   })
 
   it('does not slice a non-track key into nonsense', () => {

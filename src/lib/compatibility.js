@@ -2,14 +2,25 @@
 // { key: playcount } map -- keyFn decides the key (artist name, or
 // "Artist :: Track" for tracks)
 //
-// anything that isn't an array is treated as no items rather than thrown
-// on: this runs inside a useMemo during render, so a response missing its
-// list (`{ topartists: {} }`) would otherwise blank the whole page instead
-// of showing the "nothing in common" copy an empty list already produces.
+// a bare object is treated as a single item, not zero: Last.fm's JSON API
+// has a documented quirk on some endpoints where a one-result list comes
+// back as `{ ...one item }` instead of `[{ ...one item }]`. Live-tested
+// against user.gettopartists/gettoptracks specifically and it didn't
+// reproduce there (forcing a single-result page still came back as a real
+// one-element array) -- this is cheap insurance against that changing, not
+// a fix for an observed failure. anything else that isn't an array or an
+// object (missing entirely, e.g. a response shaped `{ topartists: {} }`)
+// is treated as no items: this runs inside a useMemo during render, and
+// throwing here would blank the whole page instead of showing the
+// "nothing in common" copy an empty list already produces.
 export function toPlaycountMap(items, keyFn) {
-  if (!Array.isArray(items)) return {}
+  const list = Array.isArray(items)
+    ? items
+    : items && typeof items === 'object'
+      ? [items]
+      : []
 
-  return items.reduce((acc, item) => {
+  return list.reduce((acc, item) => {
     acc[keyFn(item)] = Number(item.playcount)
     return acc
   }, {})
