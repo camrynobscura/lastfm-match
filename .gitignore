@@ -27,6 +27,8 @@ dist-ssr
 # Claude Code
 .claude/
 CLAUDE.md
+review.md
+FIXES.md
 
 # Local Netlify folder
 .netlify
