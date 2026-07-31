@@ -17,6 +17,31 @@ const ERROR_ID = 'match-error'
 // when results arrive delays the summary that actually matters
 const LOADING_ANNOUNCEMENT = 'Loading'
 
+// deep-linking: a search updates the URL to ?a=<one>&b=<two>&period=<p>, and
+// a page loaded with both usernames already in the URL runs that search
+// immediately -- what makes a link to a specific match actually shareable,
+// rather than just a shareable *form*.
+const VALID_PERIODS = new Set([
+  '7day',
+  '1month',
+  '3month',
+  '6month',
+  '12month',
+  'overall',
+])
+
+const getUrlParam = (key) => new URLSearchParams(window.location.search).get(key)
+
+const updateUrlForSearch = (usernameOne, usernameTwo, period) => {
+  const params = new URLSearchParams({ a: usernameOne, b: usernameTwo, period })
+  // pushState, not replaceState: each distinct search becomes its own
+  // history entry, so Back retraces what was searched, not just the pages
+  // visited before this one. no popstate listener re-runs an old search on
+  // Back -- that's a bigger feature (restoring past results) than this
+  // page needs; the URL staying accurate for copy/share is the actual goal
+  window.history.pushState(null, '', `?${params}`)
+}
+
 const Home = () => {
   // scroll targets (the score box as loading starts, the shared-artists
   // panel once results land) and focus targets after a failed submit
@@ -31,14 +56,18 @@ const Home = () => {
   // same thing can be dropped while a genuinely different one still runs
   const inFlightSearch = useRef(null)
 
-  // data from form input
-  let [usernameOne, setUsernameOne] = useState('')
-  let [usernameTwo, setUsernameTwo] = useState('')
+  // data from form input -- seeded from the URL (?a=&b=&period=) when
+  // present, so a shared link pre-fills the same search it was copied from
+  let [usernameOne, setUsernameOne] = useState(() => getUrlParam('a')?.trim() || '')
+  let [usernameTwo, setUsernameTwo] = useState(() => getUrlParam('b')?.trim() || '')
 
   let [staticUsernameOne, setStaticUsernameOne] = useState('')
   let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
 
-  let [timePeriod, setTimePeriod] = useState('1month')
+  let [timePeriod, setTimePeriod] = useState(() => {
+    const period = getUrlParam('period')
+    return VALID_PERIODS.has(period) ? period : '1month'
+  })
 
   // data from api
   let [usernameOneData, setUsernameOneData] = useState()
@@ -96,36 +125,10 @@ const Home = () => {
     )
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitError(null)
-    setSubmitInvalidField(null)
-    setHasSubmitted(false)
-    setSubmitCount((n) => n + 1)
-
-    // trimmed everywhere from here on, not just for the empty check. Last.fm
-    // tolerates surrounding spaces on lookup, so a stray one still finds the
-    // user -- but it reaches the caption, and the profile link built from it
-    // ("/user/++rj++") 404s.
-    const trimmedOne = usernameOne.trim()
-    const trimmedTwo = usernameTwo.trim()
-
-    if (!trimmedOne && !trimmedTwo) {
-      setSubmitError('Enter a username for both listeners.')
-      setSubmitInvalidField('both')
-      return
-    }
-    if (!trimmedOne) {
-      setSubmitError('Enter a username for listener one.')
-      setSubmitInvalidField('one')
-      return
-    }
-    if (!trimmedTwo) {
-      setSubmitError('Enter a username for listener two.')
-      setSubmitInvalidField('two')
-      return
-    }
-
+  // the fetch/race-condition machinery, pulled out of handleSubmit so the
+  // mount effect below (deep-linking) can run the same search without going
+  // through a form submit event that doesn't exist yet
+  const runSearch = async (trimmedOne, trimmedTwo, period) => {
     // an impatient second press of Match, while the same search is already
     // running, would fire another four requests for the answer already on
     // its way. a *different* search still goes ahead and supersedes the
@@ -134,7 +137,7 @@ const Home = () => {
     // not `disabled` on the button: disabling the element the user just
     // pressed drops focus to <body>, which is the same trap the "see more"
     // button had.
-    const searchKey = JSON.stringify([trimmedOne, trimmedTwo, timePeriod])
+    const searchKey = JSON.stringify([trimmedOne, trimmedTwo, period])
     if (isLoading && inFlightSearch.current === searchKey) return
     inFlightSearch.current = searchKey
 
@@ -157,10 +160,10 @@ const Home = () => {
         usernameOneTopTracks,
         usernameTwoTopTracks,
       ] = await Promise.all([
-        getTopArtists(trimmedOne, timePeriod),
-        getTopArtists(trimmedTwo, timePeriod),
-        getTopTracks(trimmedOne, timePeriod),
-        getTopTracks(trimmedTwo, timePeriod),
+        getTopArtists(trimmedOne, period),
+        getTopArtists(trimmedTwo, period),
+        getTopTracks(trimmedOne, period),
+        getTopTracks(trimmedTwo, period),
       ])
 
       if (superseded()) return
@@ -192,6 +195,53 @@ const Home = () => {
       }
     }
   }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitError(null)
+    setSubmitInvalidField(null)
+    setHasSubmitted(false)
+    setSubmitCount((n) => n + 1)
+
+    // trimmed everywhere from here on, not just for the empty check. Last.fm
+    // tolerates surrounding spaces on lookup, so a stray one still finds the
+    // user -- but it reaches the caption, and the profile link built from it
+    // ("/user/++rj++") 404s.
+    const trimmedOne = usernameOne.trim()
+    const trimmedTwo = usernameTwo.trim()
+
+    if (!trimmedOne && !trimmedTwo) {
+      setSubmitError('Enter a username for both listeners.')
+      setSubmitInvalidField('both')
+      return
+    }
+    if (!trimmedOne) {
+      setSubmitError('Enter a username for listener one.')
+      setSubmitInvalidField('one')
+      return
+    }
+    if (!trimmedTwo) {
+      setSubmitError('Enter a username for listener two.')
+      setSubmitInvalidField('two')
+      return
+    }
+
+    updateUrlForSearch(trimmedOne, trimmedTwo, timePeriod)
+    await runSearch(trimmedOne, trimmedTwo, timePeriod)
+  }
+
+  // a link opened with ?a=&b=&period= already present runs that search on
+  // load, instead of just pre-filling the form -- otherwise "shareable" only
+  // means the other person has to press Match themselves to see anything.
+  // deliberately empty deps: this must fire exactly once, reading the
+  // URL-seeded state from the very first render, not on every re-render
+  // (there's no dependency to add here that wouldn't defeat "once on mount")
+  useEffect(() => {
+    if (usernameOne && usernameTwo) {
+      runSearch(usernameOne, usernameTwo, timePeriod)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // after a failed submit, put the cursor in the field that needs fixing --
   // focus would otherwise sit on the button, leaving someone who can't see
@@ -373,7 +423,7 @@ const Home = () => {
                   <select
                     id='time-period'
                     name='time-period'
-                    defaultValue='1month'
+                    defaultValue={timePeriod}
                     onChange={(e) => setTimePeriod(e.target.value)}
                   >
                     <option value='7day'>1 Week</option>
