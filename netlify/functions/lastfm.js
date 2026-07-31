@@ -14,16 +14,20 @@ const LIMIT = 500
 // a loop of unique usernames straight at it (bypassing the CDN cache below,
 // which only collapses *identical* queries), burning through Last.fm's
 // shared rate limit and this site's function-invocation quota on one
-// person's account. No `path` here on purpose: Netlify's docs list it as
-// required alongside `rateLimit`, but setting it to this function's own
-// default route (`/.netlify/functions/lastfm`) broke invocation there
-// entirely in local testing -- omitting it left the implicit default route
-// intact and rateLimit still applied. 60 requests/60s per IP is ~15 full
-// two-user searches a minute (each search fires 4 requests: 2 users x
-// {artists, tracks}) -- generous for a real visitor, a real ceiling
-// against a scripted loop. Requests over the limit get a 429
+// person's account. `path` restates this function's own default route --
+// Netlify's docs say it's required alongside `rateLimit`, and both of
+// Netlify's own official examples include it. It was dropped once before
+// after it broke local `netlify dev` routing specifically, but that turned
+// out to be a local-simulator-only quirk, not a real production issue --
+// and omitting it likely made the deploy never register a rate-limit rule
+// at all (nothing about one showed up in the real deploy log, and a live
+// test against the deployed site never got a 429). 60 requests/60s per IP
+// is ~15 full two-user searches a minute (each search fires 4 requests: 2
+// users x {artists, tracks}) -- generous for a real visitor, a real
+// ceiling against a scripted loop. Requests over the limit get a 429
 // automatically; this function's own code never sees them.
 export const config = {
+  path: '/.netlify/functions/lastfm',
   rateLimit: {
     windowLimit: 60,
     windowSize: 60,
