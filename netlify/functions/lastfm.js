@@ -20,32 +20,30 @@ const LIMIT = 500
 // after 60 requests, and the deploy log's own "Processed 1 programmatic
 // custom rate limiting rules") that this genuinely works in production.
 //
-// It genuinely breaks `netlify dev` locally, though -- not just the console
-// warning ("cannot be invoked on /.netlify/functions/lastfm, because the
-// function has the following URL paths defined") but the actual request:
-// every local search falls back to index.html instead of reaching this
-// function at all. A netlify-cli local-router bug, confirmed as dev-only via
-// production still returning correct JSON on the identical path. `CONTEXT`
-// is Netlify's own deploy-context variable and is 'dev' *only* under local
-// `netlify dev` -- never during a real build, including deploy previews --
-// so this only ever disables the limiter locally, never anything deployed.
-const isLocalDev = process.env.CONTEXT === 'dev'
-
-export const config = isLocalDev
-  ? {}
-  : {
-      path: '/.netlify/functions/lastfm',
-      // 60 requests/60s per IP is ~15 full two-user searches a minute (each
-      // search fires 4 requests: 2 users x {artists, tracks}) -- generous
-      // for a real visitor, a real ceiling against a scripted loop. Requests
-      // over the limit get a 429 automatically; this function's own code
-      // never sees them.
-      rateLimit: {
-        windowLimit: 60,
-        windowSize: 60,
-        aggregateBy: ['ip'],
-      },
-    }
+// It genuinely breaks `netlify dev` locally, though -- not just a console
+// warning, but every local search actually falling back to index.html
+// instead of reaching this function. Tried making `config` conditional on
+// `process.env.CONTEXT === 'dev'` (empty config locally, real config
+// everywhere else) -- that broke rate limiting in *production* too (a live
+// 65-request burst came back all 200s, zero 429s, right after deploying it).
+// Netlify's function-config extraction most likely reads `config` via static
+// analysis, not real evaluation, so a computed/ternary value silently
+// doesn't count as valid config at all -- same silent-failure shape as
+// dropping `path` outright. Reverted. `config` must stay a plain static
+// object literal; local `netlify dev` is simply broken for this route until
+// there's a fix that doesn't touch this file's exported config shape.
+export const config = {
+  path: '/.netlify/functions/lastfm',
+  // 60 requests/60s per IP is ~15 full two-user searches a minute (each
+  // search fires 4 requests: 2 users x {artists, tracks}) -- generous for a
+  // real visitor, a real ceiling against a scripted loop. Requests over the
+  // limit get a 429 automatically; this function's own code never sees them.
+  rateLimit: {
+    windowLimit: 60,
+    windowSize: 60,
+    aggregateBy: ['ip'],
+  },
+}
 
 // The API terms require caching "in accordance with the HTTP headers sent
 // with web service responses", so Last.fm's own Cache-Control wins when it
