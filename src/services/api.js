@@ -1,6 +1,6 @@
 // The browser talks to our own function, never to Last.fm, so nothing here
 // carries a credential (see netlify/functions/lastfm.js).
-const ENDPOINT = '/.netlify/functions/lastfm'
+const ENDPOINT = '/api/lastfm'
 
 const call = async (method, user, period) => {
   const params = new URLSearchParams({ method, user, period })

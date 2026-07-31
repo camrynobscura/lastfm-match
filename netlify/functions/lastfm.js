@@ -14,26 +14,28 @@ const LIMIT = 500
 // a loop of unique usernames straight at it (bypassing the CDN cache below,
 // which only collapses *identical* queries), burning through Last.fm's
 // shared rate limit and this site's function-invocation quota on one
-// person's account. `path` restates this function's own default route --
-// Netlify's docs say it's required alongside `rateLimit`, and both of
-// Netlify's own official examples include it. Confirmed live (a real 429
-// after 60 requests, and the deploy log's own "Processed 1 programmatic
-// custom rate limiting rules") that this genuinely works in production.
+// person's account. `path` is required alongside `rateLimit` -- Netlify's
+// docs say so, and both of Netlify's own official examples include it.
 //
-// It genuinely breaks `netlify dev` locally, though -- not just a console
-// warning, but every local search actually falling back to index.html
-// instead of reaching this function. Tried making `config` conditional on
-// `process.env.CONTEXT === 'dev'` (empty config locally, real config
-// everywhere else) -- that broke rate limiting in *production* too (a live
-// 65-request burst came back all 200s, zero 429s, right after deploying it).
-// Netlify's function-config extraction most likely reads `config` via static
-// analysis, not real evaluation, so a computed/ternary value silently
-// doesn't count as valid config at all -- same silent-failure shape as
-// dropping `path` outright. Reverted. `config` must stay a plain static
-// object literal; local `netlify dev` is simply broken for this route until
-// there's a fix that doesn't touch this file's exported config shape.
+// This used to restate the function's own default route
+// (`/.netlify/functions/lastfm`), which satisfied `rateLimit` but broke
+// `netlify dev` locally: every local search silently fell back to
+// index.html instead of reaching this function at all -- Netlify's own
+// examples always give `path` a value genuinely different from the
+// default, and that self-referential case turned out to be the specific
+// thing the local router chokes on. Also tried making `config` conditional
+// on `process.env.CONTEXT === 'dev'` instead -- that broke rate limiting in
+// *production* too (a live 65-request burst came back all 200s, zero 429s,
+// right after deploying it), since Netlify's function-config extraction
+// needs `config` to be a static object literal; a computed/ternary value
+// silently doesn't count as valid config at all. `config` must stay
+// exactly the plain static object below.
+//
+// The actual fix: give the function a genuinely custom path instead of one
+// that duplicates its own default. `src/services/api.js`'s `ENDPOINT` must
+// match this value.
 export const config = {
-  path: '/.netlify/functions/lastfm',
+  path: '/api/lastfm',
   // 60 requests/60s per IP is ~15 full two-user searches a minute (each
   // search fires 4 requests: 2 users x {artists, tracks}) -- generous for a
   // real visitor, a real ceiling against a scripted loop. Requests over the
