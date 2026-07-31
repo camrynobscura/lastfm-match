@@ -54,7 +54,11 @@ $display-font: 'Barlow Condensed', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-size: 16px;
-  color-scheme: light dark;
+  // light-only, matching reality: this app has no dark theme. `light dark`
+  // let native controls (the date-range <select>'s popup) pick up the OS's
+  // dark mode while its text stayed explicitly near-black, risking
+  // dark-on-dark text with no page CSS able to catch it.
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
