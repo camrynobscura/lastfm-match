@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { getTopArtists, getTopTracks } from '../services/api'
 import { useMatchComparison } from '../hooks/useMatchComparison'
 import { describeMatch } from '../lib/resultSummary'
@@ -42,6 +42,61 @@ const updateUrlForSearch = (usernameOne, usernameTwo, period) => {
   window.history.pushState(null, '', `?${params}`)
 }
 
+// consolidates the search lifecycle (was 8 separate useState calls) into
+// one state object with a small number of named phases, so a combination
+// like "loading and resolved at the same time" is impossible to produce by
+// accident -- every action below replaces the *whole* state at once,
+// there's no partial update that could leave two fields disagreeing.
+//
+// 'invalid' (a bad form submission) and 'error' (a failed fetch) render
+// identically everywhere except one spot -- the DownArrow pointing at the
+// results section only appears once a real search was actually attempted,
+// not on a same-page validation typo -- so they stay distinct phases
+// rather than being merged into one generic "error".
+const initialState = {
+  phase: 'idle', // 'idle' | 'loading' | 'invalid' | 'resolved' | 'error'
+  staticUsernameOne: '',
+  staticUsernameTwo: '',
+  usernameOneData: undefined,
+  usernameTwoData: undefined,
+  message: null,
+  invalidField: null,
+}
+
+function searchReducer(state, action) {
+  switch (action.type) {
+    case 'VALIDATION_FAILED':
+      return {
+        ...initialState,
+        phase: 'invalid',
+        message: action.message,
+        invalidField: action.invalidField,
+      }
+    case 'SEARCH_STARTED':
+      return {
+        ...initialState,
+        phase: 'loading',
+        staticUsernameOne: action.staticUsernameOne,
+        staticUsernameTwo: action.staticUsernameTwo,
+      }
+    case 'SEARCH_SUCCEEDED':
+      return {
+        ...state,
+        phase: 'resolved',
+        usernameOneData: action.usernameOneData,
+        usernameTwoData: action.usernameTwoData,
+      }
+    case 'SEARCH_FAILED':
+      return {
+        ...state,
+        phase: 'error',
+        message: action.message,
+      }
+    default:
+      return state
+  }
+}
+
 const Home = () => {
   // scroll targets (the score box as loading starts, the shared-artists
   // panel once results land) and focus targets after a failed submit
@@ -61,28 +116,24 @@ const Home = () => {
   let [usernameOne, setUsernameOne] = useState(() => getUrlParam('a')?.trim() || '')
   let [usernameTwo, setUsernameTwo] = useState(() => getUrlParam('b')?.trim() || '')
 
-  let [staticUsernameOne, setStaticUsernameOne] = useState('')
-  let [staticUsernameTwo, setStaticUsernameTwo] = useState('')
-
   let [timePeriod, setTimePeriod] = useState(() => {
     const period = getUrlParam('period')
     return VALID_PERIODS.has(period) ? period : '1month'
   })
 
-  // data from api
-  let [usernameOneData, setUsernameOneData] = useState()
-  let [usernameTwoData, setUsernameTwoData] = useState()
-
-  // errors handleSubmit sets itself (empty fields, network failures). they
-  // can't be derived from the fetched data, unlike "user not found", which
-  // comes from useMatchComparison below.
-  const [submitError, setSubmitError] = useState(null)
-  const [submitInvalidField, setSubmitInvalidField] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
   // handed to ErrorMessage as its key: two submits producing the same
-  // message would otherwise leave the DOM untouched, and never re-announce
+  // message would otherwise leave the DOM untouched, and never re-announce.
+  // kept separate from the reducer below -- it's not "what phase is the
+  // search in", it's an independent accessibility-only counter that bumps
+  // on every submit attempt regardless of what happens next
   const [submitCount, setSubmitCount] = useState(0)
+
+  // the search lifecycle -- was 8 separate useState calls, now one state
+  // object driven by searchReducer above
+  const [state, dispatch] = useReducer(searchReducer, initialState)
+  const { staticUsernameOne, staticUsernameTwo, usernameOneData, usernameTwoData } = state
+  const isLoading = state.phase === 'loading'
+  const hasSubmitted = state.phase === 'resolved' || state.phase === 'error'
 
   const {
     score: compatibilityScore,
@@ -102,10 +153,10 @@ const Home = () => {
   // previous error: once staticUsernameOne/Two update, derivedError would
   // briefly pair the *old* fetch's data with the *new* username text and
   // show a stale message before the new fetch resolves.
-  const error = isLoading ? null : submitError || derivedError
+  const error = isLoading ? null : state.message || derivedError
   // 'one' | 'two' | 'both' | null -- drives aria-invalid/aria-describedby.
   // null means no specific field is at fault (e.g. a network failure)
-  const invalidField = isLoading ? null : submitInvalidField || derivedInvalidField
+  const invalidField = isLoading ? null : state.invalidField || derivedInvalidField
 
   // what the live region announces across the whole flow. one always-mounted
   // region, not one per state: a region appearing together with its text is
@@ -141,9 +192,11 @@ const Home = () => {
     if (isLoading && inFlightSearch.current === searchKey) return
     inFlightSearch.current = searchKey
 
-    setStaticUsernameOne(trimmedOne)
-    setStaticUsernameTwo(trimmedTwo)
-    setIsLoading(true)
+    dispatch({
+      type: 'SEARCH_STARTED',
+      staticUsernameOne: trimmedOne,
+      staticUsernameTwo: trimmedTwo,
+    })
 
     // submitting again before the first search returns leaves two in flight,
     // and the slower one lands last. without this the abandoned search's data
@@ -168,39 +221,41 @@ const Home = () => {
 
       if (superseded()) return
 
-      setUsernameOneData({
-        artists: usernameOneTopArtists,
-        tracks: usernameOneTopTracks,
-      })
-      setUsernameTwoData({
-        artists: usernameTwoTopArtists,
-        tracks: usernameTwoTopTracks,
+      dispatch({
+        type: 'SEARCH_SUCCEEDED',
+        usernameOneData: {
+          artists: usernameOneTopArtists,
+          tracks: usernameOneTopTracks,
+        },
+        usernameTwoData: {
+          artists: usernameTwoTopArtists,
+          tracks: usernameTwoTopTracks,
+        },
       })
     } catch (err) {
       if (superseded()) return
       // fetch itself throws TypeError for network-level failures (offline,
       // DNS, CORS); anything else (bad JSON, etc) is a more generic failure
-      setSubmitError(
-        err instanceof TypeError
-          ? 'Could not reach Last.fm — check your connection and try again.'
-          : 'Something went wrong. Please try again.',
-      )
+      dispatch({
+        type: 'SEARCH_FAILED',
+        message:
+          err instanceof TypeError
+            ? 'Could not reach Last.fm — check your connection and try again.'
+            : 'Something went wrong. Please try again.',
+      })
     } finally {
-      // an abandoned search must not clear the loading state out from under
-      // the one that replaced it
+      // an abandoned search must not clear the ref out from under the one
+      // that replaced it. isLoading/hasSubmitted no longer need clearing
+      // here separately -- dispatching SEARCH_SUCCEEDED/SEARCH_FAILED above
+      // already moved the phase off 'loading' as part of that same action
       if (!superseded()) {
         inFlightSearch.current = null
-        setIsLoading(false)
-        setHasSubmitted(true)
       }
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitError(null)
-    setSubmitInvalidField(null)
-    setHasSubmitted(false)
     setSubmitCount((n) => n + 1)
 
     // trimmed everywhere from here on, not just for the empty check. Last.fm
@@ -210,19 +265,32 @@ const Home = () => {
     const trimmedOne = usernameOne.trim()
     const trimmedTwo = usernameTwo.trim()
 
+    // no separate "clear the old error first" step needed: VALIDATION_FAILED
+    // (here) and SEARCH_STARTED (inside runSearch, just below) each replace
+    // the *entire* state in one dispatch, so whichever one fires next is
+    // already a clean slate on its own
     if (!trimmedOne && !trimmedTwo) {
-      setSubmitError('Enter a username for both listeners.')
-      setSubmitInvalidField('both')
+      dispatch({
+        type: 'VALIDATION_FAILED',
+        message: 'Enter a username for both listeners.',
+        invalidField: 'both',
+      })
       return
     }
     if (!trimmedOne) {
-      setSubmitError('Enter a username for listener one.')
-      setSubmitInvalidField('one')
+      dispatch({
+        type: 'VALIDATION_FAILED',
+        message: 'Enter a username for listener one.',
+        invalidField: 'one',
+      })
       return
     }
     if (!trimmedTwo) {
-      setSubmitError('Enter a username for listener two.')
-      setSubmitInvalidField('two')
+      dispatch({
+        type: 'VALIDATION_FAILED',
+        message: 'Enter a username for listener two.',
+        invalidField: 'two',
+      })
       return
     }
 
@@ -248,18 +316,18 @@ const Home = () => {
   // the form knowing what to fix but not where.
   //
   // keyed on submitCount so it fires once per submit (including a repeat of
-  // the same error) and never on an unrelated re-render. submitInvalidField
+  // the same error) and never on an unrelated re-render. state.invalidField
   // only: "user not found" lands seconds later, and taking focus then would
   // interrupt whatever the user moved on to.
   useEffect(() => {
-    if (!submitInvalidField) return
+    if (!state.invalidField) return
     // 'both' -> the first field, as the first thing needing attention
     const target =
-      submitInvalidField === 'two'
+      state.invalidField === 'two'
         ? usernameTwoRef.current
         : usernameOneRef.current
     target?.focus()
-  }, [submitCount, submitInvalidField])
+  }, [submitCount, state.invalidField])
 
   // nudge the loading box into view as loading starts. scrollIntoView has no
   // concept of "and then a little more", so the distance is computed by
