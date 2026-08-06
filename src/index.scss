@@ -6,9 +6,9 @@
 // ============================================================
 
 $ink: #171728;
-$orange: #ff4b32;
-$electric-blue: #0075ff;
-$soft-blue: #bedcff; // page background, and light text on the dark panels
+$orange: #ee512e;
+$electric-blue: #2b87f0;
+$soft-blue: #d2e7ff; // page background, and light text on the dark panels
 $soft-white: #eeeeee;
 $highlight: #73b4ff;
 $form-field: #e3effc;
@@ -24,11 +24,74 @@ $display-font: 'Barlow Condensed', sans-serif;
 // outside the resting border and survives forced-colors mode.
 //
 // the colour follows the surface -- nothing clears WCAG 1.4.11's 3:1
-// everywhere. $electric-blue only on the form card (2.98:1 on the page
+// everywhere. $electric-blue only on the form card (2.85:1 on the page
 // background), $ink on other light surfaces, $soft-white on the $ink panels.
 @mixin focus-ring($color: $ink) {
   outline: 3px solid $color;
   outline-offset: 2px;
+}
+
+// the cards' drop shadow: the same offset silhouette a flat `box-shadow`
+// drew, rendered as a tiling dot grid instead of a solid fill.
+//
+// deliberately no z-index anywhere. sinking a full-size layer behind the
+// card with `z-index: -1` is the obvious build and it's a trap: -1 doesn't
+// stop at "behind this box", it drops behind the nearest ancestor stacking
+// context, so any ancestor with its own background painted in between
+// swallows the dots -- silently, since they do still render. instead this
+// sizes the layer to the shadow's rectangle and clips it down to the
+// L-shaped sliver that actually shows past the card, so it never overlaps
+// the card at all and paint order stops mattering. one element rather than
+// two strips, so the grid stays continuous around the corner.
+//
+// $offset-x shifts the shadow right (drives `left`), $offset-y shifts it
+// down (drives `top`) -- same order as box-shadow's own x/y. they're
+// independent, so unequal values are fine.
+//
+// $border must match the caller's own border width -- see below.
+@mixin dot-shadow(
+  $offset-x: 14px,
+  $offset-y: 12px,
+  $gap: 4px,
+  $radius: 1px,
+  $color: rgba($electric-blue, 0.4),
+  $border: 2px
+) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    // absolute, so on a flex container (.match-results) this stays out of
+    // flow instead of becoming a stray flex item
+    pointer-events: none;
+    // `inset` on an absolute pseudo resolves against the *padding* box, so
+    // back the border out to line this up with the border box -- otherwise
+    // the shadow is narrower than the thing casting it
+    top: $offset-y - $border;
+    left: $offset-x - $border;
+    width: calc(100% + #{$border * 2});
+    height: calc(100% + #{$border * 2});
+    background-image: radial-gradient(
+      $color $radius,
+      transparent $radius + 0.4px
+    );
+    background-size: $gap $gap;
+    // keep only what pokes out past the card: the right strip at full
+    // height, plus the bottom strip. the card's own bottom-right corner
+    // sits at (100% - offset-x, 100% - offset-y) in this layer's own
+    // coordinates -- so every x below tracks $offset-x and every y tracks
+    // $offset-y. mixing the two up still looks right while they're equal
+    // and quietly skews the moment they aren't.
+    clip-path: polygon(
+      calc(100% - #{$offset-x}) 0,
+      100% 0,
+      100% 100%,
+      0 100%,
+      0 calc(100% - #{$offset-y}),
+      calc(100% - #{$offset-x}) calc(100% - #{$offset-y})
+    );
+  }
 }
 
 // ============================================================
@@ -145,7 +208,7 @@ h1 {
       text-underline-offset: 2px;
 
       // accent goes on the underline, not the text: $orange on the page
-      // background is 2.36:1, well under the 4.5:1 body text needs
+      // background is 2.84:1, well under the 4.5:1 body text needs
       &:hover {
         text-decoration-color: $orange;
       }
@@ -172,7 +235,7 @@ h1 {
   background-color: $soft-white;
   border: 2px solid $ink;
   border-radius: 0;
-  box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  @include dot-shadow;
   max-width: 640px;
   width: 100%;
   margin: 0 auto 40px;
@@ -508,7 +571,7 @@ h1 {
   gap: 10px;
   text-align: left;
   border: 2px solid $ink;
-  box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  @include dot-shadow;
   padding: 30px;
   background-color: $soft-white;
   // fixed width + min-height so the box doesn't visibly resize between the
@@ -1122,7 +1185,7 @@ h1 {
   background-color: $soft-white;
   border: 2px solid $ink;
   border-radius: 0;
-  box-shadow: 10px 10px 0 rgba($ink, 0.9);
+  @include dot-shadow;
   color: $ink;
   padding: 18px 24px;
 
