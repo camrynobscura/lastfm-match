@@ -60,6 +60,11 @@ not raw playcount — so one heavy listener can't dominate the ordering.
   found") get forwarded untouched instead of a generic failure.
 - **Edge caching.** Identical searches get cached at the edge instead of
   hitting Last.fm's API twice.
+- **A CSP you can't test locally.** The security headers only apply on the
+  real deploy, so production is the first place anything new meets them. The
+  decorative wave under the title is an inline SVG data URI, which the
+  original `img-src 'self'` blocked on sight — it shipped as a blank gap
+  after passing every local check.
 
 ## Running it locally
 
