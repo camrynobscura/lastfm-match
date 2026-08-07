@@ -16,8 +16,26 @@
 # style-src keeps 'unsafe-inline' because React sets bar widths and grid
 # column vars via the style prop; that's a CSS-only allowance (no script
 # execution risk), not a loophole back to what script-src closes.
+#
+# img-src allows data: for one thing: the wave under the h1 is an inline
+# SVG data URI in index.scss, not a file on disk. The scary reputation
+# data: has is earned under script-src, where it would mean arbitrary
+# code; under img-src it doesn't carry that. An SVG loaded *as an image*
+# is inert -- browsers run no script in it and resolve no external refs,
+# regardless of CSP -- and a data: URI makes no network request at all,
+# so it can't exfiltrate. The contexts where an SVG would instead load as
+# a live document stay shut: object-src is 'none', and frame-src is
+# undeclared so it inherits default-src 'self'.
+#
+# Worth knowing before adding anything else this policy governs: NEITHER
+# `netlify dev` NOR `vite preview` applies this file (the first never
+# touches dist/, the second doesn't understand the _headers format), so
+# production is the first place a new kind of source meets these rules.
+# The squiggle above shipped green across every local check and rendered
+# as a blank 20px gap on the live site for exactly that reason. To test a
+# CSP change locally you have to serve dist/ yourself with the header set.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=()
