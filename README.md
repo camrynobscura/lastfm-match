@@ -45,8 +45,6 @@ Math.round(Math.pow(combined, 1 / 4) * 100)
 The shared lists are ranked the same way — by each person's share of listening,
 not raw playcount — so one heavy listener can't dominate the ordering.
 
-![The shared artists table, showing per-listener play counts as paired bars](docs/screenshot-shared-artists.png)
-
 ## Gotchas
 
 - **Hiding the API key.** Last.fm needs a key, but this app has no backend of
