@@ -5,8 +5,6 @@ overlaps — a compatibility score, plus every artist and track they share.
 
 **[lastfm-match.netlify.app](https://lastfm-match.netlify.app/)**
 
-![The form and a completed match, showing a 48% compatibility score and the artists both listeners have in common](docs/screenshot-match.png)
-
 ## How the compatibility score is computed
 
 **Library size shouldn't be punished.** The obvious approach is Jaccard
